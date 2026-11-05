@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+# One-shot preparation: regulatory domain, service conflicts, permissions.
+set -euo pipefail
+
+CONFIG="${KRAKEN_CONFIG:-/etc/kraken/kraken.toml}"
+MARKER=/var/lib/kraken/.firstboot-done
+
+if [[ -f "$MARKER" ]]; then
+    exit 0
+fi
+
+mkdir -p /var/lib/kraken /var/log/kraken /run/kraken /etc/kraken/tls
+chmod 0750 /var/lib/kraken /var/log/kraken
+chmod 0770 /run/kraken
+
+reg="US"
+if [[ -r "$CONFIG" ]]; then
+    reg="$(python3 - "$CONFIG" <<'PY'
+import sys, tomllib
+try:
+    with open(sys.argv[1], "rb") as handle:
+        data = tomllib.load(handle)
+    print(data.get("radio", {}).get("reg_domain", "US"))
+except Exception:
+    print("US")
+PY
+)"
+fi
+
+if command -v iw >/dev/null 2>&1; then
+    iw reg set "$reg" 2>/dev/null || true
+fi
+if command -v rfkill >/dev/null 2>&1; then
+    rfkill unblock wifi 2>/dev/null || true
+fi
+
+# The daemon launches hostapd and dnsmasq itself; distro units must not race it.
+for unit in hostapd.service dnsmasq.service; do
+    systemctl disable --now "$unit" >/dev/null 2>&1 || true
+    systemctl mask "$unit" >/dev/null 2>&1 || true
+done
+
+if getent group kraken >/dev/null 2>&1; then
+    for path in /etc/kraken/api.token /etc/kraken/tls/key.pem; do
+        if [[ -e "$path" ]]; then
+            chgrp kraken "$path" 2>/dev/null || true
+            chmod 0640 "$path" 2>/dev/null || true
+        fi
+    done
+fi
+
+# Provisioning removes the image's shared host keys; make new ones before sshd.
+if ! compgen -G "/etc/ssh/ssh_host_*_key" >/dev/null; then
+    ssh-keygen -A >/dev/null 2>&1 || true
+fi
+
+touch "$MARKER"
+chmod 0644 "$MARKER"
+systemctl disable kraken-firstboot.service >/dev/null 2>&1 || true
+exit 0

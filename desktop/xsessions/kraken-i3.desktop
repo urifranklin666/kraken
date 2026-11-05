@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=KRAKEN i3
+Comment=Tokyo Night i3 cyberdeck session
+Exec=i3
+TryExec=i3
+Type=Application
+DesktopNames=i3
+X-LightDM-DesktopName=KRAKEN i3
+Keywords=desktop;shell;i3;kraken;

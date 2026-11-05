@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Open the dashboard in a browser tab (kraken-browser first, xdg-open second).
+set -euo pipefail
+
+URL="${KRAKEN_URL:-http://127.0.0.1:8080/}"
+
+if command -v kraken-browser >/dev/null 2>&1; then
+    exec kraken-browser "$URL"
+fi
+if command -v xdg-open >/dev/null 2>&1; then
+    exec xdg-open "$URL"
+fi
+printf '%s\n' "$URL"

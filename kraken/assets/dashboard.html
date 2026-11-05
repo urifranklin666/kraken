@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en" data-theme="tokyo-night">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="referrer" content="no-referrer">
+<title>KRAKEN // console</title>
+<link rel="stylesheet" href="/assets/app.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2316161e'/%3E%3Cpath d='M16 5c5 0 9 4 9 9 0 4-3 7-6 8v5l-3-2-3 2v-5c-3-1-6-4-6-8 0-5 4-9 9-9z' fill='none' stroke='%237dcfff' stroke-width='2'/%3E%3Ccircle cx='12' cy='14' r='1.6' fill='%23bb9af7'/%3E%3Ccircle cx='20' cy='14' r='1.6' fill='%23bb9af7'/%3E%3C/svg%3E">
+</head>
+<body>
+<div class="aurora" aria-hidden="true"></div>
+<div class="scanlines" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div class="brand">
+    <svg class="brand-mark" viewBox="0 0 48 48" aria-hidden="true">
+      <defs>
+        <linearGradient id="kg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#7dcfff"/>
+          <stop offset="1" stop-color="#bb9af7"/>
+        </linearGradient>
+      </defs>
+      <path d="M24 5c8.3 0 15 6.3 15 14.2 0 5.9-3.9 10.6-8.4 12.4L30 45l-6-4-6 4 .4-13.4C13.9 29.8 10 25.1 10 19.2 10 11.3 15.7 5 24 5z"
+            fill="none" stroke="url(#kg)" stroke-width="2.4" stroke-linejoin="round"/>
+      <path d="M17 17.5c1.2-1.6 2.6-2.4 4-2.4M31 17.5c-1.2-1.6-2.6-2.4-4-2.4" fill="none" stroke="#7aa2f7" stroke-width="1.6" stroke-linecap="round"/>
+      <circle cx="18.5" cy="22" r="2" fill="#7dcfff"/>
+      <circle cx="29.5" cy="22" r="2" fill="#7dcfff"/>
+      <path d="M21 29.5c1.9 1.3 4.1 1.3 6 0" fill="none" stroke="#bb9af7" stroke-width="1.6" stroke-linecap="round"/>
+    </svg>
+    <div class="brand-text">
+      <span class="brand-name">KRAKEN</span>
+      <span class="brand-sub"><b id="hostname">kraken</b> <i>//</i> wifi cyberdeck</span>
+    </div>
+  </div>
+
+  <nav class="modes" id="mode-switch" aria-label="Operating mode">
+    <button type="button" data-mode="hybrid" data-active="false">HYBRID</button>
+    <button type="button" data-mode="recon" data-active="false">RECON</button>
+    <button type="button" data-mode="ap" data-active="false">AP</button>
+    <button type="button" data-mode="idle" data-active="false">IDLE</button>
+  </nav>
+
+  <div class="topbar-meta">
+    <div class="meta"><span>UPTIME</span><b id="uptime">--:--:--</b></div>
+    <div class="meta"><span>CH / HOPS</span><b id="channels">--</b></div>
+    <div class="meta"><span>CLOCK</span><b id="clock">--:--</b></div>
+    <div class="conn" id="conn" data-state="off" title="dashboard link">
+      <i></i><span id="conn-text">LINK</span>
+    </div>
+    <button type="button" class="icon-btn" id="token-btn" title="set API token" aria-label="set API token">KEY</button>
+  </div>
+</header>
+
+<div class="ticker" id="ticker" aria-live="polite">
+  <span class="ticker-tag">SYS</span>
+  <div class="ticker-track"><span id="ticker-text">establishing control channel…</span></div>
+  <span class="ticker-auth" id="auth-badge">AUTH —</span>
+</div>
+
+<main class="shell">
+  <aside class="rail">
+    <div class="face-card">
+      <div class="face-frame">
+        <pre class="face" id="face">(・_・)</pre>
+      </div>
+      <div class="face-meta">
+        <span class="mood" id="mood">booting</span>
+        <span class="epoch">EPOCH <b id="epoch">0</b></span>
+      </div>
+      <p class="blurb" id="blurb">waking the kraken…</p>
+    </div>
+
+    <nav class="rail-nav" aria-label="sections">
+      <a href="#overview" class="active"><span>01</span>overview</a>
+      <a href="#networks"><span>02</span>networks</a>
+      <a href="#clients"><span>03</span>clients</a>
+      <a href="#captures"><span>04</span>captures</a>
+      <a href="#access"><span>05</span>access point</a>
+      <a href="#controls"><span>06</span>controls</a>
+      <a href="#logs"><span>07</span>logs</a>
+    </nav>
+
+    <div class="rail-foot">
+      <div class="mini"><span>radio</span><b id="radio">—</b></div>
+      <div class="mini"><span>uplink</span><b id="uplink">—</b></div>
+      <div class="mini"><span>version</span><b id="version">—</b></div>
+    </div>
+  </aside>
+
+  <div class="content">
+
+    <section class="panel hero" id="overview">
+      <div class="panel-head">
+        <h2><span class="dot"></span>overview</h2>
+        <span class="hint">live telemetry · 2s</span>
+      </div>
+
+      <div class="tiles">
+        <article class="tile" data-tone="blue"><span class="tile-k">networks</span><b id="stat-aps">0</b><small id="stat-aps-sub">discovered</small></article>
+        <article class="tile" data-tone="magenta"><span class="tile-k">clients</span><b id="stat-clients">0</b><small>observed</small></article>
+        <article class="tile" data-tone="cyan"><span class="tile-k">handshakes</span><b id="stat-handshakes">0</b><small id="stat-hs-sub">0 verified</small></article>
+        <article class="tile" data-tone="green"><span class="tile-k">frames</span><b id="stat-frames">0</b><small id="stat-eapol">0 eapol</small></article>
+        <article class="tile" data-tone="yellow"><span class="tile-k">capture</span><b id="stat-size">0 B</b><small id="stat-file">no pcapng</small></article>
+        <article class="tile" data-tone="red"><span class="tile-k">deauth</span><b id="stat-deauth">0</b><small id="stat-aggressive">passive</small></article>
+      </div>
+
+      <div class="hero-grid">
+        <div class="chart-card">
+          <div class="chart-head">
+            <span>activity</span>
+            <div class="legend"><i class="l-aps"></i>aps <i class="l-clients"></i>clients <i class="l-hs"></i>handshakes</div>
+          </div>
+          <canvas id="chart" width="760" height="180" role="img" aria-label="network discovery history"></canvas>
+          <div class="chart-foot"><span id="chart-empty">collecting samples…</span><span id="chart-range">—</span></div>
+        </div>
+
+        <div class="side-stack">
+          <div class="kv-card">
+            <div class="kv"><span>mode</span><b id="kv-mode">—</b></div>
+            <div class="kv"><span>monitor</span><b id="kv-monitor">—</b></div>
+            <div class="kv"><span>channel</span><b id="kv-channel">—</b></div>
+            <div class="kv"><span>ap ssid</span><b id="kv-ap">—</b></div>
+            <div class="kv"><span>ap clients</span><b id="kv-apclients">0</b></div>
+            <div class="kv"><span>mitm</span><b id="kv-mitm">off</b></div>
+            <div class="kv"><span>disk free</span><b id="kv-disk">—</b></div>
+          </div>
+          <div class="warn-card" id="warn-card" data-empty="true">
+            <span class="warn-k">warnings</span>
+            <ul id="warnings"><li class="warn-none">all systems nominal</li></ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="networks">
+      <div class="panel-head">
+        <h2><span class="dot"></span>networks</h2>
+        <div class="panel-tools">
+          <input type="search" id="aps-filter" placeholder="filter ssid / bssid / channel" autocomplete="off">
+          <span class="hint" id="aps-count">0</span>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="data" id="aps-table">
+          <thead><tr><th>ssid</th><th>bssid</th><th>ch</th><th>rssi</th><th>security</th><th>last seen</th></tr></thead>
+          <tbody><tr class="empty"><td colspan="6">no networks yet — switch to hybrid or recon</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel" id="clients">
+      <div class="panel-head">
+        <h2><span class="dot"></span>clients</h2>
+        <div class="panel-tools">
+          <input type="search" id="clients-filter" placeholder="filter mac / bssid" autocomplete="off">
+          <span class="hint" id="clients-count">0</span>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="data" id="clients-table">
+          <thead><tr><th>client</th><th>vendor</th><th>bssid</th><th>rssi</th><th>last seen</th></tr></thead>
+          <tbody><tr class="empty"><td colspan="5">no clients observed yet</td></tr></tbody>
+        </table>
+      </div>
+      <p class="fineprint">Passive observation only. Client identity is hashed to a local vendor lookup; no traffic is stored.</p>
+    </section>
+
+    <section class="panel" id="captures">
+      <div class="panel-head">
+        <h2><span class="dot"></span>captures</h2>
+        <div class="panel-tools">
+          <button type="button" class="ghost-btn" id="verify-all">verify all</button>
+          <span class="hint" id="captures-count">0</span>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="data" id="captures-table">
+          <thead><tr><th>id</th><th>captured</th><th>kind</th><th>bssid</th><th>ssid</th><th>size</th><th>status</th><th>actions</th></tr></thead>
+          <tbody><tr class="empty"><td colspan="8">no EAPOL or PMKID material yet</td></tr></tbody>
+        </table>
+      </div>
+      <p class="fineprint">Raw 802.11 frames plus EAPOL/PMKID are written as pcapng under <code>/var/lib/kraken/captures</code>. Verification uses <code>hcxpcapngtool</code>; nothing is uploaded anywhere.</p>
+    </section>
+
+    <section class="panel" id="access">
+      <div class="panel-head">
+        <h2><span class="dot"></span>access point</h2>
+        <span class="hint" id="ap-state">—</span>
+      </div>
+      <div class="ap-grid">
+        <form class="form-card" id="ap-form" autocomplete="off">
+          <label>ssid<input id="ap-ssid" name="ssid" maxlength="32" spellcheck="false"></label>
+          <label>passphrase <small>blank = open network</small><input id="ap-passphrase" name="passphrase" type="password" maxlength="63" spellcheck="false" placeholder="••••••••"></label>
+          <div class="row">
+            <label>band
+              <select id="ap-band" name="band">
+                <option value="5">5 GHz</option>
+                <option value="2.4">2.4 GHz</option>
+              </select>
+            </label>
+            <label>channel
+              <select id="ap-channel" name="channel"></select>
+            </label>
+          </div>
+          <label class="check"><input type="checkbox" id="ap-portal" name="portal"> captive portal + DNS hijack</label>
+          <div class="form-actions">
+            <button type="submit" class="primary">apply &amp; restart ap</button>
+            <button type="button" class="ghost-btn" id="ap-refresh">reload</button>
+          </div>
+          <p class="fineprint">Changing SSID or channel restarts hostapd; connected clients drop for a few seconds. WPA2 is used when a passphrase is set.</p>
+        </form>
+
+        <div class="ap-side">
+          <div class="kv-card">
+            <div class="kv"><span>state</span><b id="ap-enabled">—</b></div>
+            <div class="kv"><span>interface</span><b id="ap-iface">—</b></div>
+            <div class="kv"><span>portal ip</span><b id="ap-portalip">—</b></div>
+            <div class="kv"><span>band / ch</span><b id="ap-bandch">—</b></div>
+            <div class="kv"><span>security</span><b id="ap-sec">—</b></div>
+            <div class="kv"><span>uplink</span><b id="ap-uplink">—</b></div>
+          </div>
+          <div class="client-list-card">
+            <div class="chart-head"><span>associated clients</span><a class="ghost-link" href="/portal" target="_blank" rel="noopener">open portal ↗</a></div>
+            <ul class="client-list" id="ap-clients"><li class="warn-none">none associated</li></ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="controls">
+      <div class="panel-head">
+        <h2><span class="dot"></span>controls</h2>
+        <span class="hint">opt-in capabilities stay off until you arm them</span>
+      </div>
+      <div class="control-grid">
+        <article class="control" data-control="mitm">
+          <div class="control-head"><h3>traffic interception</h3><span class="pill" id="mitm-pill">off</span></div>
+          <p>bettercap ARP spoof + HTTP proxy on the lab AP. Requires a daemon started with <code>--authorized</code>. No TLS stripping, no credential extraction.</p>
+          <div class="control-actions">
+            <button type="button" class="ghost-btn" data-toggle="mitm" data-value="1">arm</button>
+            <button type="button" class="ghost-btn" data-toggle="mitm" data-value="0">disarm</button>
+            <span class="control-note" id="mitm-note">—</span>
+          </div>
+        </article>
+
+        <article class="control" data-control="aggressive">
+          <div class="control-head"><h3>aggressive recon</h3><span class="pill" id="aggressive-pill">off</span></div>
+          <p>Targeted deauthentication bursts against blacklisted BSSIDs to force handshakes. Only enable on networks you own or have written permission to test.</p>
+          <div class="control-actions">
+            <button type="button" class="ghost-btn" data-toggle="aggressive" data-value="1">arm</button>
+            <button type="button" class="ghost-btn" data-toggle="aggressive" data-value="0">disarm</button>
+            <span class="control-note" id="aggressive-note">—</span>
+          </div>
+        </article>
+
+        <article class="control danger" data-control="panic">
+          <div class="control-head"><h3>panic stop</h3><span class="pill pill-danger">kill</span></div>
+          <p>Immediately stops the AP, monitor capture and interception, and drops to idle. Radios are returned to NetworkManager.</p>
+          <div class="control-actions">
+            <button type="button" class="danger-btn" id="panic-btn">stop everything</button>
+          </div>
+        </article>
+      </div>
+      <div class="auth-strip" id="auth-strip" data-state="off">
+        <b>authorization</b>
+        <span id="auth-text">daemon started without --authorized; MITM and deauth are locked.</span>
+      </div>
+    </section>
+
+    <section class="panel" id="logs">
+      <div class="panel-head">
+        <h2><span class="dot"></span>event log</h2>
+        <div class="panel-tools">
+          <button type="button" class="ghost-btn" id="logs-refresh">refresh</button>
+          <label class="check"><input type="checkbox" id="logs-follow" checked> follow</label>
+        </div>
+      </div>
+      <div class="event-log" id="event-log" role="log" aria-live="polite"></div>
+      <details class="raw-logs">
+        <summary>daemon log tail</summary>
+        <pre id="raw-log">loading…</pre>
+      </details>
+    </section>
+
+    <footer class="footer">
+      <span>KRAKEN — authorized laboratory use only. Intercepting networks you do not own is illegal.</span>
+      <span class="keys"><kbd>1</kbd>–<kbd>4</kbd> mode · <kbd>?</kbd> help · <kbd>esc</kbd> close</span>
+    </footer>
+  </div>
+</main>
+
+<div class="toasts" id="toasts" aria-live="assertive"></div>
+
+<dialog id="token-dialog" class="modal">
+  <form method="dialog" class="modal-card">
+    <h2>API token</h2>
+    <p>Remote writes and capture downloads require the token from <code>/etc/kraken/api.token</code>. It is kept in this tab's session storage only.</p>
+    <input id="token-input" type="password" spellcheck="false" autocomplete="off" placeholder="paste token">
+    <p class="modal-error" id="token-error"></p>
+    <div class="modal-actions">
+      <button value="cancel" class="ghost-btn" formnovalidate>cancel</button>
+      <button value="save" class="primary" id="token-save">save &amp; reconnect</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="help-dialog" class="modal">
+  <div class="modal-card">
+    <h2>keyboard</h2>
+    <dl class="keys-list">
+      <dt><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd></dt><dd>hybrid / recon / ap / idle</dd>
+      <dt><kbd>r</kbd></dt><dd>force refresh</dd>
+      <dt><kbd>t</kbd></dt><dd>set API token</dd>
+      <dt><kbd>?</kbd></dt><dd>this dialog</dd>
+      <dt><kbd>esc</kbd></dt><dd>close dialog</dd>
+    </dl>
+    <div class="modal-actions"><button class="ghost-btn" id="help-close">close</button></div>
+  </div>
+</dialog>
+
+<script src="/assets/app.js"></script>
+</body>
+</html>

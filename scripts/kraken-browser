@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# Launch Chromium with KRAKEN's flags, or the dashboard when no URL is given.
+#
+# The Pi 4 v3d driver exposes GLES 3.1 through EGL, which is why Debian's
+# chromium wrapper adds --use-angle=gles. Extra flags can be appended with
+# KRAKEN_BROWSER_FLAGS, e.g. KRAKEN_BROWSER_FLAGS=--disable-gpu kraken-browser
+set -euo pipefail
+
+URL="${1:-${KRAKEN_URL:-http://127.0.0.1:8080/}}"
+
+notify() { command -v notify-send >/dev/null 2>&1 && notify-send -a KRAKEN "$@" || true; }
+
+browser=""
+for candidate in chromium chromium-browser google-chrome-stable; do
+    if command -v "$candidate" >/dev/null 2>&1; then
+        browser="$candidate"
+        break
+    fi
+done
+
+if [[ -z "$browser" ]]; then
+    notify "no browser installed" "install chromium or run: kraken web"
+    printf '%s\n' "$URL"
+    exit 1
+fi
+
+flags=(
+    --no-first-run
+    --no-default-browser-check
+    --password-store=basic
+    --disable-features=Translate,MediaRouter
+    --class=Chromium
+)
+# shellcheck disable=SC2206
+[[ -n "${KRAKEN_BROWSER_FLAGS:-}" ]] && flags+=(${KRAKEN_BROWSER_FLAGS})
+
+exec "$browser" "${flags[@]}" "$URL"

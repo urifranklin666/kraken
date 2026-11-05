@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# polybar: face + mode + counters from the daemon's flat status files.
+set -euo pipefail
+
+RUN="${KRAKEN_RUN_DIR:-/run/kraken}"
+
+read_one() {
+    local file="$RUN/$1" fallback="$2"
+    if [[ -r "$file" ]]; then
+        head -n1 "$file" 2>/dev/null || printf '%s' "$fallback"
+    else
+        printf '%s' "$fallback"
+    fi
+}
+
+if [[ ! -d "$RUN" || ! -r "$RUN/mode" ]]; then
+    printf '%%{F#f7768e}offline'
+    exit 0
+fi
+
+face="$(read_one face '(・_・)')"
+mode="$(read_one mode 'IDLE')"
+aps="$(read_one aps 0)"
+clients="$(read_one clients 0)"
+handshakes="$(read_one handshakes 0)"
+
+case "$mode" in
+    HYBRID) mode_color="#bb9af7" ;;
+    RECON)  mode_color="#7dcfff" ;;
+    AP)     mode_color="#9ece6a" ;;
+    *)      mode_color="#565f89" ;;
+esac
+
+printf '%%{F#bb9af7}%s%%{F#565f89} %%{F%s}%s%%{F#565f89} %%{F#7dcfff}%sa %%{F#bb9af7}%sc %%{F#9ece6a}%sh' \
+    "$face" "$mode_color" "$mode" "$aps" "$clients" "$handshakes"

@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# Screenshot helper: full screen, selected region, or active window.
+set -euo pipefail
+
+MODE="${1:-full}"
+DIR="${XDG_PICTURES_DIR:-$HOME/Pictures}/Screenshots"
+mkdir -p "$DIR"
+FILE="$DIR/kraken-$(date +%Y%m%d-%H%M%S).png"
+
+notify() { command -v notify-send >/dev/null 2>&1 && notify-send -a KRAKEN "$@" || true; }
+
+if ! command -v maim >/dev/null 2>&1; then
+    notify "screenshot failed" "maim is not installed"
+    exit 1
+fi
+
+case "$MODE" in
+    full)
+        maim "$FILE"
+        ;;
+    region)
+        maim -s "$FILE" || exit 0
+        ;;
+    window)
+        if command -v xdotool >/dev/null 2>&1; then
+            window="$(xdotool getactivewindow 2>/dev/null || true)"
+            if [[ -n "$window" ]]; then
+                maim -i "$window" "$FILE"
+            else
+                maim -s "$FILE" || exit 0
+            fi
+        else
+            maim -s "$FILE" || exit 0
+        fi
+        ;;
+    *)
+        echo "usage: kraken-screenshot [full|region|window]" >&2
+        exit 2
+        ;;
+esac
+
+[[ -s "$FILE" ]] || exit 0
+
+if command -v xclip >/dev/null 2>&1; then
+    xclip -selection clipboard -t image/png -i "$FILE" || true
+fi
+
+notify -i "$FILE" "screenshot saved" "$(basename "$FILE")"

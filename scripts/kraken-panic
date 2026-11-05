@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Panic stop: confirm, then take the AP, capture and interception down.
+set -euo pipefail
+
+ROFI_THEME="${HOME}/.config/rofi/kraken.rasi"
+notify() { command -v notify-send >/dev/null 2>&1 && notify-send -a KRAKEN "$@" || true; }
+
+answer=""
+if command -v rofi >/dev/null 2>&1; then
+    answer="$(printf 'no\nyes\n' | rofi -dmenu -i -p "◈ stop everything?" -theme "$ROFI_THEME" -no-custom -lines 2)" || exit 0
+elif command -v zenity >/dev/null 2>&1; then
+    zenity --question --title="KRAKEN" --text="Stop the AP, monitor capture and interception?" || exit 0
+    answer="yes"
+else
+    notify "panic needs confirmation" "install rofi or zenity"
+    exit 1
+fi
+
+[[ "$answer" == "yes" ]] || exit 0
+
+if output="$(kraken panic 2>&1)"; then
+    notify "KRAKEN stopped" "$output"
+else
+    notify "panic failed" "$output"
+    exit 1
+fi

@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+# KRAKEN rofi control menu.
+set -euo pipefail
+
+ROFI_THEME="${HOME}/.config/rofi/kraken.rasi"
+notify() { command -v notify-send >/dev/null 2>&1 && notify-send -a KRAKEN "$@" || true; }
+
+if ! command -v rofi >/dev/null 2>&1; then
+    notify "rofi is not installed" "the KRAKEN menu needs rofi"
+    exit 1
+fi
+
+portal_url() {
+    local ip
+    ip="$(kraken ap show 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin).get("portal_ip") or "10.13.37.1")' 2>/dev/null || true)"
+    printf 'http://%s:8080/portal' "${ip:-10.13.37.1}"
+}
+
+terminal_command() {
+    if command -v alacritty >/dev/null 2>&1; then
+        nohup alacritty -e bash -lc "$1; echo; read -rp 'press enter to close'" >/dev/null 2>&1 &
+    elif command -v x-terminal-emulator >/dev/null 2>&1; then
+        nohup x-terminal-emulator -e bash -lc "$1; echo; read -rp 'press enter to close'" >/dev/null 2>&1 &
+    else
+        notify "no terminal emulator" "$1"
+    fi
+}
+
+choice="$(printf '%s\n' \
+    "status          live console" \
+    "mode: hybrid     AP + recon" \
+    "mode: recon      monitor only" \
+    "mode: ap         access point only" \
+    "mode: idle       radios released" \
+    "portal          captive portal" \
+    "handshakes      captured material" \
+    "networks        discovered APs" \
+    "clients         observed stations" \
+    "logs            daemon tail" \
+    "restart         KRAKEN service" \
+    "panic           stop everything" \
+    "power           lock / reboot / off" \
+    | rofi -dmenu -i -p "◈ kraken" -theme "$ROFI_THEME" -no-custom -lines 13 \
+        -mesg "authorized laboratory use only")" || exit 0
+
+case "$choice" in
+    status*)
+        nohup kraken-dashboard >/dev/null 2>&1 &
+        ;;
+    "mode:"*)
+        mode="$(printf '%s' "$choice" | awk '{print $2}')"
+        if result="$(kraken mode "$mode" 2>&1)"; then
+            notify "mode ${mode}" "$result"
+        else
+            notify "mode change failed" "$result"
+        fi
+        ;;
+    portal*)
+        nohup xdg-open "$(portal_url)" >/dev/null 2>&1 &
+        ;;
+    handshakes*)
+        terminal_command "kraken handshakes --limit 40"
+        ;;
+    networks*)
+        terminal_command "kraken aps --limit 60"
+        ;;
+    clients*)
+        terminal_command "kraken clients --limit 60"
+        ;;
+    logs*)
+        terminal_command "kraken logs -n 120"
+        ;;
+    restart*)
+        if sudo -n systemctl restart kraken 2>/dev/null; then
+            notify "KRAKEN restarted" "the dashboard reconnects in a moment"
+        else
+            notify "restart failed" "sudo -n systemctl restart kraken was denied"
+        fi
+        ;;
+    panic*)
+        kraken-panic
+        ;;
+    power*)
+        kraken-power
+        ;;
+esac

@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# provision-usb.sh output: image files, checksums and the download cache
+build/
+*.img
+*.img.xz
+*.sha256
+kraken-image/
+
+# editor / OS noise
+*.swp
+.DS_Store

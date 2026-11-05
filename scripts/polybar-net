@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# polybar: uplink interface and IPv4 address.
+set -euo pipefail
+
+RUN="${KRAKEN_RUN_DIR:-/run/kraken}"
+
+read_one() {
+    local file="$RUN/$1" fallback="$2"
+    if [[ -r "$file" ]]; then
+        head -n1 "$file" 2>/dev/null || printf '%s' "$fallback"
+    else
+        printf '%s' "$fallback"
+    fi
+}
+
+iface="$(read_one uplink none)"
+if [[ -z "$iface" || "$iface" == "none" ]]; then
+    printf '%%{F#f7768e}no uplink'
+    exit 0
+fi
+
+ip=""
+if command -v ip >/dev/null 2>&1; then
+    ip="$(ip -4 -o addr show dev "$iface" scope global 2>/dev/null | awk '{print $4}' | cut -d/ -f1 | head -1 || true)"
+fi
+
+if [[ -n "$ip" ]]; then
+    printf '%%{F#a9b1d6}%s %%{F#7dcfff}%s' "$iface" "$ip"
+else
+    printf '%%{F#a9b1d6}%s %%{F#e0af68}no ip' "$iface"
+fi

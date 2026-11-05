@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# Show the KRAKEN cheat sheet (or the full guide) in a floating terminal.
+set -euo pipefail
+
+WHICH="${1:-hotkeys}"
+case "$WHICH" in
+    guide|user|manual) DOC="/usr/share/kraken/USER-GUIDE.md" ;;
+    hotkeys|keys|*)    DOC="/usr/share/kraken/HOTKEYS.md" ;;
+esac
+
+if [[ ! -r "$DOC" ]]; then
+    printf 'missing %s\n' "$DOC" >&2
+    command -v notify-send >/dev/null 2>&1 && \
+        notify-send -a KRAKEN "guide not installed" "$DOC is missing"
+    exit 1
+fi
+
+runner=(less -R)
+command -v most >/dev/null 2>&1 && runner=(most)
+
+if command -v alacritty >/dev/null 2>&1; then
+    exec alacritty --class kraken-term -e "${runner[@]}" "$DOC"
+elif command -v x-terminal-emulator >/dev/null 2>&1; then
+    exec x-terminal-emulator -e "${runner[@]}" "$DOC"
+fi
+
+# No graphical terminal: print it.
+"${runner[@]}" "$DOC"

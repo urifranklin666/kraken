@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# Open (or focus) the KRAKEN dashboard as a Chromium app window.
+set -euo pipefail
+
+URL="${KRAKEN_URL:-http://127.0.0.1:8080/}"
+TOKEN="$(cat /etc/kraken/api.token 2>/dev/null || true)"
+if [[ -n "$TOKEN" && "$URL" != *#* ]]; then
+    URL="${URL}#token=${TOKEN}"
+fi
+
+focus_existing() {
+    if command -v wmctrl >/dev/null 2>&1 && wmctrl -xa Kraken 2>/dev/null; then
+        return 0
+    fi
+    if command -v xdotool >/dev/null 2>&1; then
+        local wid
+        wid="$(xdotool search --class Kraken 2>/dev/null | head -1 || true)"
+        if [[ -n "$wid" ]]; then
+            xdotool windowactivate "$wid" 2>/dev/null || true
+            return 0
+        fi
+    fi
+    return 1
+}
+
+focus_existing && exit 0
+
+for browser in chromium chromium-browser google-chrome-stable; do
+    if command -v "$browser" >/dev/null 2>&1; then
+        setsid "$browser" \
+            --app="$URL" \
+            --class=Kraken \
+            --window-size=1600,900 \
+            --start-maximized \
+            --no-first-run \
+            --disable-features=Translate,MediaRouter \
+            --password-store=basic \
+            >/dev/null 2>&1 &
+        exit 0
+    fi
+done
+
+if command -v xdg-open >/dev/null 2>&1; then
+    setsid xdg-open "$URL" >/dev/null 2>&1 &
+else
+    echo "no browser available for $URL" >&2
+    exit 1
+fi

@@ -1,0 +1,18 @@
+[Unit]
+Description=KRAKEN first-boot preparation
+Documentation=file:///opt/kraken/app/README.md
+After=network-pre.target local-fs.target
+Before=kraken.service ssh.service
+ConditionPathExists=/etc/kraken/kraken.toml
+Wants=network-pre.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/kraken-firstboot
+RemainAfterExit=yes
+TimeoutStartSec=120
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

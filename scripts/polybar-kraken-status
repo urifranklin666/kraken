@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# polybar: radio / channel / hop telemetry and armed-capability badges.
+set -euo pipefail
+
+RUN="${KRAKEN_RUN_DIR:-/run/kraken}"
+
+read_one() {
+    local file="$RUN/$1" fallback="$2"
+    if [[ -r "$file" ]]; then
+        head -n1 "$file" 2>/dev/null || printf '%s' "$fallback"
+    else
+        printf '%s' "$fallback"
+    fi
+}
+
+if [[ ! -r "$RUN/mode" ]]; then
+    printf '%%{F#f7768e}no daemon'
+    exit 0
+fi
+
+mode="$(read_one mode 'IDLE')"
+monitor="$(read_one monitor '-')"
+channel="$(read_one channel '-')"
+hops="$(read_one hops 0)"
+mitm="$(read_one mitm off)"
+aggressive="$(read_one aggressive off)"
+
+case "$mode" in
+    HYBRID) color="#bb9af7" ;;
+    RECON)  color="#7dcfff" ;;
+    AP)     color="#9ece6a" ;;
+    *)      color="#565f89" ;;
+esac
+
+out="%{F${color}}${mode,,}%{F#565f89} · %{F#a9b1d6}${monitor}%{F#565f89} · ch %{F#7dcfff}${channel}%{F#565f89} · %{F#a9b1d6}${hops}%{F#565f89} hops"
+
+if [[ "$mitm" == "on" ]]; then
+    out+=" %{F#16161e}%{B#e0af68} mitm %{B-}%{F-}"
+fi
+if [[ "$aggressive" == "on" ]]; then
+    out+=" %{F#16161e}%{B#f7768e} deauth %{B-}%{F-}"
+fi
+
+printf '%s' "$out"

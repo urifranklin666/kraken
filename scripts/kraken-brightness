@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# Display brightness: brightnessctl when available, otherwise xrandr gamma.
+set -euo pipefail
+
+ACTION="${1:-up}"
+STEP="${KRAKEN_BRIGHTNESS_STEP:-8}"
+STATE_DIR="${XDG_RUNTIME_DIR:-/tmp}"
+STATE="$STATE_DIR/kraken-brightness"
+mkdir -p "$STATE_DIR" 2>/dev/null || true
+
+notify() { command -v notify-send >/dev/null 2>&1 && notify-send -a KRAKEN -h string:x-canonical-private-synchronous:brightness -h int:value:"$1" "brightness $1%" || true; }
+
+if command -v brightnessctl >/dev/null 2>&1 && brightnessctl -q info >/dev/null 2>&1; then
+    case "$ACTION" in
+        up) brightnessctl -q set "${STEP}%+" ;;
+        down) brightnessctl -q set "${STEP}%-" ;;
+        *) echo "usage: kraken-brightness [up|down]" >&2; exit 2 ;;
+    esac
+    percent="$(brightnessctl -m 2>/dev/null | awk -F, '{gsub(/%/,"",$4); print $4; exit}')"
+    notify "${percent:-0}"
+    exit 0
+fi
+
+if ! command -v xrandr >/dev/null 2>&1; then
+    echo "no brightness backend available" >&2
+    exit 1
+fi
+
+output="$(xrandr --query 2>/dev/null | awk '/ connected/{print $1; exit}')"
+[[ -n "$output" ]] || exit 1
+
+current="$(cat "$STATE" 2>/dev/null || echo 1.0)"
+value="$(awk -v c="$current" -v step="$STEP" -v action="$ACTION" 'BEGIN {
+    delta = step / 100;
+    v = (action == "up") ? c + delta : c - delta;
+    if (v > 1.0) v = 1.0;
+    if (v < 0.2) v = 0.2;
+    printf "%.2f", v;
+}')"
+
+xrandr --output "$output" --brightness "$value"
+printf '%s\n' "$value" >"$STATE"
+percent="$(awk -v v="$value" 'BEGIN { printf "%d", v * 100 }')"
+notify "$percent"

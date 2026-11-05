@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# Volume control with notification, preferring pamixer then pactl then amixer.
+set -euo pipefail
+
+ACTION="${1:-up}"
+STEP="${KRAKEN_VOLUME_STEP:-5}"
+
+notify_volume() {
+    local level="$1" muted="$2" icon="audio-volume-high"
+    [[ "$muted" == "yes" ]] && icon="audio-volume-muted"
+    command -v notify-send >/dev/null 2>&1 || return 0
+    notify-send -a KRAKEN -i "$icon" -h string:x-canonical-private-synchronous:volume \
+        -h int:value:"$level" "volume ${level}%" "$([[ "$muted" == "yes" ]] && echo muted || echo '')"
+}
+
+level=""
+muted="no"
+
+if command -v pamixer >/dev/null 2>&1; then
+    case "$ACTION" in
+        up) pamixer -i "$STEP" --allow-boost ;;
+        down) pamixer -d "$STEP" ;;
+        mute) pamixer -t ;;
+        *) echo "usage: kraken-volume [up|down|mute]" >&2; exit 2 ;;
+    esac
+    level="$(pamixer --get-volume 2>/dev/null || echo 0)"
+    if [[ "$(pamixer --get-mute 2>/dev/null || echo false)" == "true" ]]; then muted="yes"; fi
+elif command -v pactl >/dev/null 2>&1; then
+    sink="@DEFAULT_SINK@"
+    case "$ACTION" in
+        up) pactl set-sink-volume "$sink" "+${STEP}%" ;;
+        down) pactl set-sink-volume "$sink" "-${STEP}%" ;;
+        mute) pactl set-sink-mute "$sink" toggle ;;
+        *) echo "usage: kraken-volume [up|down|mute]" >&2; exit 2 ;;
+    esac
+    level="$(pactl get-sink-volume "$sink" 2>/dev/null | awk 'NR==1{match($0,/[0-9]+%/); print substr($0,RSTART,RLENGTH-1); exit}')"
+    if [[ "$(pactl get-sink-mute "$sink" 2>/dev/null | awk '{print $2}')" == "yes" ]]; then muted="yes"; fi
+elif command -v amixer >/dev/null 2>&1; then
+    case "$ACTION" in
+        up) amixer -q sset Master "${STEP}%+" ;;
+        down) amixer -q sset Master "${STEP}%-" ;;
+        mute) amixer -q sset Master toggle ;;
+        *) echo "usage: kraken-volume [up|down|mute]" >&2; exit 2 ;;
+    esac
+    level="$(amixer get Master 2>/dev/null | awk -F'[][]' '/\[[0-9]+%\]/{print $2; exit}' | tr -d '%')"
+    if amixer get Master 2>/dev/null | grep -q '\[off\]'; then muted="yes"; fi
+else
+    command -v notify-send >/dev/null 2>&1 && notify-send -a KRAKEN "volume unavailable" "install pamixer, pulseaudio-utils or alsa-utils"
+    exit 1
+fi
+
+level="${level:-0}"
+notify_volume "$level" "$muted"

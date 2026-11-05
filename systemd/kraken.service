@@ -1,0 +1,36 @@
+[Unit]
+Description=KRAKEN WiFi cyberdeck daemon (pwnagotchi-style recon + captive-portal AP)
+Documentation=file:///opt/kraken/app/README.md
+After=network-online.target NetworkManager.service
+Wants=network-online.target
+Conflicts=hostapd.service dnsmasq.service
+StartLimitIntervalSec=120
+StartLimitBurst=4
+
+[Service]
+Type=simple
+User=root
+Group=root
+ExecStart=/usr/local/bin/kraken daemon
+Restart=on-failure
+RestartSec=5
+TimeoutStartSec=90
+TimeoutStopSec=30
+KillMode=mixed
+Environment=PYTHONUNBUFFERED=1
+Environment=KRAKEN_CONFIG=/etc/kraken/kraken.toml
+RuntimeDirectory=kraken
+RuntimeDirectoryMode=0770
+StateDirectory=kraken
+StateDirectoryMode=0750
+LogsDirectory=kraken
+LogsDirectoryMode=0750
+PrivateTmp=yes
+ProtectHome=read-only
+ProtectKernelTunables=no
+ProtectControlGroups=no
+RestrictSUIDSGID=no
+UMask=0027
+
+[Install]
+WantedBy=multi-user.target

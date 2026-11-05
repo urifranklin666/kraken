@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# polybar: network / client / handshake counters.
+set -euo pipefail
+
+RUN="${KRAKEN_RUN_DIR:-/run/kraken}"
+
+read_one() {
+    local file="$RUN/$1" fallback="$2"
+    if [[ -r "$file" ]]; then
+        head -n1 "$file" 2>/dev/null || printf '%s' "$fallback"
+    else
+        printf '%s' "$fallback"
+    fi
+}
+
+if [[ ! -r "$RUN/aps" ]]; then
+    printf '%%{F#565f89}—'
+    exit 0
+fi
+
+aps="$(read_one aps 0)"
+clients="$(read_one clients 0)"
+handshakes="$(read_one handshakes 0)"
+verified="$(read_one verified 0)"
+
+printf '%%{F#7dcfff}%s%%{F#565f89} ap · %%{F#bb9af7}%s%%{F#565f89} cl · %%{F#9ece6a}%s%%{F#565f89} hs · %%{F#e0af68}%s ok' \
+    "$aps" "$clients" "$handshakes" "$verified"

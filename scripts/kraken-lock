@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Lock the session with a Tokyo Night backdrop.
+set -euo pipefail
+
+WALLPAPER="${KRAKEN_WALLPAPER:-/usr/share/kraken/wallpaper.png}"
+
+notify() { command -v notify-send >/dev/null 2>&1 && notify-send -a KRAKEN "$@" || true; }
+
+if ! command -v i3lock >/dev/null 2>&1; then
+    notify "lock unavailable" "i3lock is not installed"
+    exit 1
+fi
+
+args=(-n -c 16161e)
+if [[ -f "$WALLPAPER" ]]; then
+    args+=(-i "$WALLPAPER")
+fi
+
+exec i3lock "${args[@]}"

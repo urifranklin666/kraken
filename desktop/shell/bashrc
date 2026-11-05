@@ -1,0 +1,105 @@
+# KRAKEN interactive shell — Tokyo Night neon
+# Installed as /etc/profile.d/kraken.sh and sourced from ~/.bashrc.
+
+[[ $- != *i* ]] && return
+
+# history -------------------------------------------------------------------
+HISTSIZE=20000
+HISTFILESIZE=40000
+HISTCONTROL=ignoreboth:erasedups
+HISTTIMEFORMAT="%F %T  "
+shopt -s histappend checkwinsize cmdhist
+
+# editor / pager ------------------------------------------------------------
+export EDITOR="${EDITOR:-nano}"
+export VISUAL="${VISUAL:-$EDITOR}"
+export PAGER="${PAGER:-less}"
+export LESS="-R -F -X"
+
+# colours -------------------------------------------------------------------
+__kraken_reset='\[\e[0m\]'
+__kraken_cyan='\[\e[38;5;117m\]'
+__kraken_blue='\[\e[38;5;111m\]'
+__kraken_magenta='\[\e[38;5;141m\]'
+__kraken_green='\[\e[38;5;114m\]'
+__kraken_yellow='\[\e[38;5;179m\]'
+__kraken_red='\[\e[38;5;203m\]'
+__kraken_grey='\[\e[38;5;243m\]'
+__kraken_fg='\[\e[38;5;253m\]'
+__kraken_bold='\[\e[1m\]'
+
+__kraken_git_branch() {
+    command -v git >/dev/null 2>&1 || return
+    local branch
+    branch="$(git symbolic-ref --quiet --short HEAD 2>/dev/null || git rev-parse --short HEAD 2>/dev/null)" || return
+    [[ -n "$branch" ]] || return
+    local dirty=""
+    [[ -n "$(git status --porcelain --ignore-submodules 2>/dev/null)" ]] && dirty="*"
+    printf ' %s%s' "$branch" "$dirty"
+}
+
+__kraken_venv() {
+    [[ -n "${VIRTUAL_ENV:-}" ]] && printf ' venv:%s' "$(basename "$VIRTUAL_ENV")"
+}
+
+__kraken_prompt() {
+    local exit_code=$?
+    local path="${PWD/#$HOME/~}"
+    local branch
+    branch="$(__kraken_git_branch)"
+
+    PS1="${__kraken_grey}┌─[${__kraken_cyan}\u${__kraken_grey}@${__kraken_magenta}\h${__kraken_grey}]"
+    PS1+="─[${__kraken_blue}${path}${__kraken_grey}]"
+    [[ -n "$branch" ]] && PS1+="─[${__kraken_green}git${__kraken_grey}:${__kraken_green}${branch# }${__kraken_grey}]"
+    PS1+="$(__kraken_venv)\n"
+
+    if [[ $exit_code -ne 0 ]]; then
+        PS1+="${__kraken_red}└─◈ ${exit_code} ${__kraken_reset}"
+    else
+        PS1+="${__kraken_magenta}└─◈ ${__kraken_fg}"
+    fi
+}
+
+PROMPT_COMMAND="__kraken_prompt${PROMPT_COMMAND:+;$PROMPT_COMMAND}"
+PS2="${__kraken_grey}  │ ${__kraken_fg}"
+
+# aliases -------------------------------------------------------------------
+alias ls='ls --color=auto --group-directories-first'
+alias ll='ls -lah'
+alias la='ls -A'
+alias lt='ls -lah --sort=time'
+alias grep='grep --color=auto'
+alias ip='ip -color=auto'
+alias ports='ss -tulpn'
+alias df='df -h'
+alias free='free -h'
+
+alias k='kraken'
+alias ks='kraken status'
+alias kd='kraken-dashboard'
+alias kw='kraken-web'
+alias km='kraken-menu'
+alias kh='kraken handshakes'
+alias ka='kraken aps'
+alias kc='kraken clients'
+alias kl='kraken logs -n 80'
+alias kp='kraken-panic'
+alias kdoc='kraken doctor'
+alias ksvc='systemctl status kraken --no-pager'
+alias klog='journalctl -u kraken -f -n 80'
+
+alias g='git'
+alias gs='git status --short --branch'
+alias gd='git diff'
+alias gl='git log --oneline --graph --decorate -20'
+alias gc='git commit'
+alias gp='git push'
+
+alias welcome='fastfetch'
+alias reload-i3='i3-msg reload'
+alias restart-i3='i3-msg restart'
+
+# safety net ----------------------------------------------------------------
+alias rm='rm -i'
+alias cp='cp -i'
+alias mv='mv -i'

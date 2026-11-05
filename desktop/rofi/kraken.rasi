@@ -1,0 +1,148 @@
+/* KRAKEN rofi — Tokyo Night neon */
+
+* {
+    bg:        #16161eF2;
+    bg-alt:    #1f2335;
+    bg-input:  #1a1b26;
+    fg:        #c0caf5;
+    fg-dim:    #a9b1d6;
+    muted:     #565f89;
+    cyan:      #7dcfff;
+    blue:      #7aa2f7;
+    magenta:   #bb9af7;
+    green:     #9ece6a;
+    yellow:    #e0af68;
+    red:       #f7768e;
+    line:      #2f3549;
+
+    background-color: @bg;
+    text-color:       @fg;
+    border-color:     @blue;
+    font:             "JetBrainsMono Nerd Font 11";
+}
+
+window {
+    width:            760px;
+    border:           2px;
+    border-radius:    14px;
+    padding:          14px;
+    background-color: @bg;
+    border-color:     @blue;
+}
+
+mainbox {
+    spacing:  10px;
+    padding:  4px;
+    children: [ inputbar, listview ];
+}
+
+inputbar {
+    spacing:          9px;
+    padding:          10px 12px;
+    background-color: @bg-input;
+    border:           1px;
+    border-color:     @line;
+    border-radius:    9px;
+    children:         [ prompt, entry, case-indicator ];
+}
+
+prompt {
+    text-color: @cyan;
+}
+
+entry {
+    placeholder:       "run a command, open the lab…";
+    placeholder-color: @muted;
+    text-color:        @fg;
+    cursor:            text;
+}
+
+case-indicator {
+    text-color: @muted;
+}
+
+listview {
+    lines:        9;
+    columns:      1;
+    spacing:      4px;
+    scrollbar:    false;
+    fixed-height: false;
+    border:       0;
+    padding:      2px;
+}
+
+element {
+    spacing:     10px;
+    padding:     8px 10px;
+    border:      0;
+    border-radius: 7px;
+    background-color: transparent;
+    text-color:  @fg-dim;
+}
+
+element normal.normal {
+    background-color: transparent;
+    text-color:       @fg-dim;
+}
+
+element alternate.normal {
+    background-color: transparent;
+    text-color:       @fg-dim;
+}
+
+element selected.normal {
+    background-color: @blue;
+    text-color:       @bg;
+}
+
+element-icon {
+    size:       20px;
+    background: transparent;
+    text-color: inherit;
+}
+
+element-text {
+    background-color: transparent;
+    text-color:       inherit;
+    vertical-align:   0.5;
+}
+
+element selected .element-text {
+    text-color: @bg;
+}
+
+scrollbar {
+    width:       4px;
+    border:      0;
+    handle-width: 4px;
+    handle-color: @muted;
+    background-color: transparent;
+}
+
+button {
+    spacing:     8px;
+    padding:     6px 10px;
+    border:      1px;
+    border-color: @line;
+    border-radius: 7px;
+    background-color: @bg-alt;
+    text-color:  @fg-dim;
+}
+
+button selected {
+    background-color: @cyan;
+    text-color:       @bg;
+}
+
+message {
+    padding:     10px;
+    border:      1px;
+    border-color: @yellow;
+    border-radius: 8px;
+    background-color: @bg-alt;
+    text-color:  @yellow;
+}
+
+textbox {
+    text-color: @fg-dim;
+}

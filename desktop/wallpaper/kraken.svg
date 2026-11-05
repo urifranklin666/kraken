@@ -1,0 +1,147 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-label="KRAKEN Tokyo Night synthwave wallpaper">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#101014"/>
+      <stop offset="0.38" stop-color="#16161e"/>
+      <stop offset="0.72" stop-color="#1a1b26"/>
+      <stop offset="0.88" stop-color="#241b30"/>
+      <stop offset="1" stop-color="#16161e"/>
+    </linearGradient>
+
+    <radialGradient id="sun" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#f7768e" stop-opacity="0.92"/>
+      <stop offset="0.42" stop-color="#bb9af7" stop-opacity="0.62"/>
+      <stop offset="0.78" stop-color="#7aa2f7" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#7aa2f7" stop-opacity="0"/>
+    </radialGradient>
+
+    <linearGradient id="horizon" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7dcfff" stop-opacity="0"/>
+      <stop offset="0.2" stop-color="#7dcfff" stop-opacity="0.55"/>
+      <stop offset="0.5" stop-color="#bb9af7" stop-opacity="0.85"/>
+      <stop offset="0.8" stop-color="#7dcfff" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#7dcfff" stop-opacity="0"/>
+    </linearGradient>
+
+    <radialGradient id="vignette" cx="0.5" cy="0.46" r="0.78">
+      <stop offset="0.45" stop-color="#101014" stop-opacity="0"/>
+      <stop offset="0.82" stop-color="#101014" stop-opacity="0.42"/>
+      <stop offset="1" stop-color="#101014" stop-opacity="0.86"/>
+    </radialGradient>
+
+    <pattern id="stars" width="180" height="180" patternUnits="userSpaceOnUse">
+      <circle cx="14" cy="26" r="1.1" fill="#c0caf5" opacity="0.55"/>
+      <circle cx="76" cy="12" r="0.8" fill="#7dcfff" opacity="0.5"/>
+      <circle cx="128" cy="48" r="1.4" fill="#c0caf5" opacity="0.35"/>
+      <circle cx="40" cy="92" r="0.7" fill="#bb9af7" opacity="0.6"/>
+      <circle cx="150" cy="118" r="1.0" fill="#c0cef5" opacity="0.4"/>
+      <circle cx="98" cy="150" r="0.9" fill="#7aa2f7" opacity="0.45"/>
+      <circle cx="170" cy="8" r="0.6" fill="#c0caf5" opacity="0.5"/>
+      <circle cx="58" cy="164" r="1.2" fill="#7dcfff" opacity="0.3"/>
+    </pattern>
+
+    <pattern id="scan" width="4" height="4" patternUnits="userSpaceOnUse">
+      <rect width="4" height="1" fill="#ffffff" opacity="0.018"/>
+    </pattern>
+
+    <clipPath id="sunclip">
+      <circle cx="800" cy="462" r="188"/>
+    </clipPath>
+
+    <clipPath id="floor">
+      <rect x="0" y="560" width="1600" height="340"/>
+    </clipPath>
+
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="2.2"/>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#sky)"/>
+  <rect width="1600" height="565" fill="url(#stars)"/>
+
+  <circle cx="800" cy="462" r="360" fill="url(#sun)" opacity="0.5"/>
+  <circle cx="800" cy="462" r="236" fill="url(#sun)" opacity="0.55" filter="url(#soft)"/>
+
+  <g clip-path="url(#sunclip)">
+    <circle cx="800" cy="462" r="188" fill="url(#sun)" opacity="0.95"/>
+    <rect x="600" y="352" width="400" height="6" fill="#16161e" opacity="0.55"/>
+    <rect x="600" y="392" width="400" height="9" fill="#16161e" opacity="0.62"/>
+    <rect x="600" y="432" width="400" height="12" fill="#16161e" opacity="0.7"/>
+    <rect x="600" y="474" width="400" height="15" fill="#16161e" opacity="0.78"/>
+    <rect x="600" y="518" width="400" height="18" fill="#16161e" opacity="0.86"/>
+    <rect x="600" y="562" width="400" height="22" fill="#16161e" opacity="0.94"/>
+  </g>
+
+  <path d="M0 560 L0 502 L42 502 L42 472 L74 472 L74 518 L116 518 L116 486 L152 486 L152 532 L202 532 L202 456 L232 456 L232 508 L272 508 L272 542 L322 542 L322 492 L362 492 L362 522 L412 522 L412 472 L452 472 L452 512 L502 512 L502 487 L542 487 L542 547 L592 547 L592 502 L632 502 L632 476 L672 476 L672 522 L722 522 L722 497 L762 497 L762 542 L822 542 L822 482 L862 482 L862 517 L902 517 L902 466 L942 466 L942 507 L982 507 L982 537 L1032 537 L1032 492 L1072 492 L1072 522 L1122 522 L1122 477 L1162 477 L1162 517 L1212 517 L1212 497 L1252 497 L1252 547 L1302 547 L1302 502 L1342 502 L1342 472 L1382 472 L1382 522 L1432 522 L1432 487 L1472 487 L1472 512 L1522 512 L1522 482 L1562 482 L1562 532 L1600 532 L1600 560 Z" fill="#1a1b26"/>
+  <path d="M0 560 L0 532 L58 532 L58 516 L102 516 L102 540 L168 540 L168 522 L226 522 L226 548 L298 548 L298 528 L358 528 L358 544 L438 544 L438 526 L498 526 L498 550 L568 550 L568 530 L636 530 L636 545 L708 545 L708 524 L768 524 L768 550 L842 550 L842 528 L902 528 L902 544 L972 544 L972 526 L1038 526 L1038 549 L1108 549 L1108 530 L1172 530 L1172 546 L1248 546 L1248 524 L1318 524 L1318 548 L1388 548 L1388 530 L1458 530 L1458 546 L1528 546 L1528 526 L1600 526 L1600 560 Z" fill="#1f2335"/>
+
+  <g fill="#7dcfff" opacity="0.32">
+    <rect x="214" y="470" width="4" height="5"/><rect x="222" y="470" width="4" height="5"/>
+    <rect x="214" y="482" width="4" height="5"/><rect x="222" y="492" width="4" height="5"/>
+    <rect x="914" y="480" width="4" height="5"/><rect x="924" y="480" width="4" height="5"/>
+    <rect x="914" y="492" width="4" height="5"/><rect x="924" y="504" width="4" height="5"/>
+    <rect x="1354" y="486" width="4" height="5"/><rect x="1364" y="486" width="4" height="5"/>
+    <rect x="1354" y="498" width="4" height="5"/><rect x="1364" y="510" width="4" height="5"/>
+    <rect x="80" y="486" width="4" height="5"/><rect x="90" y="496" width="4" height="5"/>
+    <rect x="1144" y="492" width="4" height="5"/><rect x="1154" y="504" width="4" height="5"/>
+  </g>
+  <g fill="#bb9af7" opacity="0.3">
+    <rect x="306" y="506" width="4" height="5"/><rect x="316" y="506" width="4" height="5"/>
+    <rect x="306" y="518" width="4" height="5"/>
+    <rect x="1482" y="500" width="4" height="5"/><rect x="1492" y="500" width="4" height="5"/>
+    <rect x="1482" y="512" width="4" height="5"/>
+    <rect x="426" y="486" width="4" height="5"/><rect x="436" y="498" width="4" height="5"/>
+  </g>
+
+  <g clip-path="url(#floor)" stroke="#7dcfff" stroke-width="1">
+    <g opacity="0.2">
+      <line x1="800" y1="560" x2="-320" y2="900"/>
+      <line x1="800" y1="560" x2="-160" y2="900"/>
+      <line x1="800" y1="560" x2="0" y2="900"/>
+      <line x1="800" y1="560" x2="160" y2="900"/>
+      <line x1="800" y1="560" x2="320" y2="900"/>
+      <line x1="800" y1="560" x2="480" y2="900"/>
+      <line x1="800" y1="560" x2="640" y2="900"/>
+      <line x1="800" y1="560" x2="800" y2="900"/>
+      <line x1="800" y1="560" x2="960" y2="900"/>
+      <line x1="800" y1="560" x2="1120" y2="900"/>
+      <line x1="800" y1="560" x2="1280" y2="900"/>
+      <line x1="800" y1="560" x2="1440" y2="900"/>
+      <line x1="800" y1="560" x2="1600" y2="900"/>
+      <line x1="800" y1="560" x2="1760" y2="900"/>
+      <line x1="800" y1="560" x2="1920" y2="900"/>
+    </g>
+    <g opacity="0.16">
+      <line x1="0" y1="572" x2="1600" y2="572"/>
+      <line x1="0" y1="594" x2="1600" y2="594"/>
+      <line x1="0" y1="628" x2="1600" y2="628"/>
+      <line x1="0" y1="671" x2="1600" y2="671"/>
+      <line x1="0" y1="722" x2="1600" y2="722"/>
+      <line x1="0" y1="780" x2="1600" y2="780"/>
+      <line x1="0" y1="842" x2="1600" y2="842"/>
+      <line x1="0" y1="900" x2="1600" y2="900"/>
+    </g>
+  </g>
+
+  <rect x="0" y="558" width="1600" height="2" fill="url(#horizon)" filter="url(#glow)"/>
+  <rect x="0" y="560" width="1600" height="340" fill="#16161e" opacity="0.18"/>
+
+  <g transform="translate(800 322) scale(7.4) translate(-24 -24)" fill="none" stroke="#7dcfff" stroke-width="0.35" opacity="0.08">
+    <path d="M24 5c8.3 0 15 6.3 15 14.2 0 5.9-3.9 10.6-8.4 12.4L30 45l-6-4-6 4 .4-13.4C13.9 29.8 10 25.1 10 19.2 10 11.3 15.7 5 24 5z"/>
+    <circle cx="18.5" cy="22" r="2"/>
+    <circle cx="29.5" cy="22" r="2"/>
+    <path d="M21 29.5c1.9 1.3 4.1 1.3 6 0"/>
+  </g>
+
+  <rect width="1600" height="900" fill="url(#vignette)"/>
+  <rect width="1600" height="900" fill="url(#scan)"/>
+</svg>

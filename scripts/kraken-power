@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+# KRAKEN power / session menu.
+set -euo pipefail
+
+ROFI_THEME="${HOME}/.config/rofi/kraken.rasi"
+notify() { command -v notify-send >/dev/null 2>&1 && notify-send -a KRAKEN "$@" || true; }
+
+pick() {
+    printf '%s\n' "$@" | rofi -dmenu -i -p "◈ power" -theme "$ROFI_THEME" -no-custom -lines 7
+}
+
+confirm() {
+    local answer
+    answer="$(printf 'no\nyes\n' | rofi -dmenu -i -p "confirm $1?" -theme "$ROFI_THEME" -no-custom -lines 2)" || return 1
+    [[ "$answer" == "yes" ]]
+}
+
+choice="$(pick \
+    "lock            screen" \
+    "logout          i3 session" \
+    "restart-kraken  service" \
+    "reboot          system" \
+    "shutdown        power off" \
+    "cancel")" || exit 0
+
+case "$choice" in
+    lock*)
+        exec kraken-lock
+        ;;
+    logout*)
+        if confirm "logout"; then
+            i3-msg exit
+        fi
+        ;;
+    restart-kraken*)
+        if confirm "restart KRAKEN"; then
+            if sudo -n systemctl restart kraken 2>/dev/null; then
+                notify "KRAKEN restarted"
+            else
+                notify "restart failed" "sudo permission denied"
+            fi
+        fi
+        ;;
+    reboot*)
+        if confirm "reboot"; then
+            systemctl reboot 2>/dev/null || sudo -n systemctl reboot
+        fi
+        ;;
+    shutdown*)
+        if confirm "shutdown"; then
+            systemctl poweroff 2>/dev/null || sudo -n systemctl poweroff
+        fi
+        ;;
+esac

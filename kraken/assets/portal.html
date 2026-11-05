@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en" data-theme="tokyo-night">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex, nofollow">
+<title>KRAKEN // guest uplink</title>
+<link rel="stylesheet" href="/assets/app.css">
+<style>
+  body.portal { display: grid; place-items: center; min-height: 100vh; padding: 24px; }
+  .portal-shell { width: min(760px, 100%); display: flex; flex-direction: column; gap: 16px; position: relative; z-index: 1; }
+  .portal-brand { display: flex; align-items: center; gap: 14px; }
+  .portal-brand svg { width: 52px; height: 52px; filter: drop-shadow(0 0 8px rgba(125, 207, 255, 0.45)); }
+  .portal-brand h1 {
+    margin: 0;
+    font-size: 24px;
+    letter-spacing: 0.34em;
+    background: linear-gradient(92deg, #7dcfff, #7aa2f7 45%, #bb9af7);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .portal-brand p { margin: 3px 0 0; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
+  .portal-card {
+    padding: 22px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: linear-gradient(180deg, rgba(31, 35, 53, 0.88), rgba(26, 27, 38, 0.96));
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+  .portal-card h2 { margin: 0 0 4px; font-size: 13px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--cyan); }
+  .portal-card .lede { margin: 0 0 16px; color: var(--muted); font-size: 12px; line-height: 1.65; }
+  .net-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 18px; }
+  .net-cell { padding: 9px 11px; border: 1px solid var(--line); border-radius: 8px; background: rgba(16, 16, 20, 0.55); }
+  .net-cell span { display: block; font-size: 8.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
+  .net-cell b { display: block; margin-top: 3px; font-size: 12px; color: var(--fg); font-weight: 600; }
+  .notice { display: flex; gap: 10px; padding: 11px 12px; border: 1px solid rgba(224, 175, 104, 0.35); border-radius: 8px; background: rgba(224, 175, 104, 0.06); font-size: 11px; line-height: 1.6; color: #c8b58a; margin-bottom: 16px; }
+  .notice b { color: var(--yellow); }
+  .portal-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .portal-actions .hint { font-size: 9.5px; }
+  .online { display: none; margin-top: 18px; padding-top: 16px; border-top: 1px dashed var(--line); }
+  .online[data-visible="true"] { display: block; animation: toast-in 0.3s ease-out; }
+  .online h3 { margin: 0 0 8px; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--green); }
+  .online p { margin: 0 0 10px; font-size: 11px; color: var(--muted); }
+  .online a { color: var(--cyan); }
+  .portal-foot { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 9px; letter-spacing: 0.08em; color: #3b4261; }
+  @media (max-width: 560px) { .net-grid { grid-template-columns: 1fr; } .portal-card { padding: 16px; } }
+</style>
+</head>
+<body class="portal">
+<div class="aurora" aria-hidden="true"></div>
+<div class="scanlines" aria-hidden="true"></div>
+
+<div class="portal-shell">
+  <div class="portal-brand">
+    <svg viewBox="0 0 48 48" aria-hidden="true">
+      <path d="M24 5c8.3 0 15 6.3 15 14.2 0 5.9-3.9 10.6-8.4 12.4L30 45l-6-4-6 4 .4-13.4C13.9 29.8 10 25.1 10 19.2 10 11.3 15.7 5 24 5z"
+            fill="none" stroke="#7dcfff" stroke-width="2.4" stroke-linejoin="round"/>
+      <circle cx="18.5" cy="22" r="2" fill="#7dcfff"/>
+      <circle cx="29.5" cy="22" r="2" fill="#7dcfff"/>
+      <path d="M21 29.5c1.9 1.3 4.1 1.3 6 0" fill="none" stroke="#bb9af7" stroke-width="1.6" stroke-linecap="round"/>
+    </svg>
+    <div>
+      <h1>KRAKEN</h1>
+      <p>guest uplink // captive portal</p>
+    </div>
+  </div>
+
+  <main class="portal-card">
+    <h2 id="net-ssid">KRAKEN//LAB</h2>
+    <p class="lede">You are attached to a private, isolated laboratory access point. This portal exists so the operator can hand out the dashboard address and lab rules — it does not ask for passwords, email addresses, or payment details.</p>
+
+    <div class="net-grid">
+      <div class="net-cell"><span>gateway</span><b id="net-gw">10.13.37.1</b></div>
+      <div class="net-cell"><span>dashboard</span><b>port 8080</b></div>
+      <div class="net-cell"><span>isolation</span><b id="net-iso">client isolation on</b></div>
+    </div>
+
+    <div class="notice">
+      <div>
+        <b>Authorized testing only.</b> This network captures 802.11 management traffic for security research. Do not use it to access, intercept, or disrupt systems you do not own or have written permission to test. By continuing you confirm you are an invited participant in this lab.
+      </div>
+    </div>
+
+    <div class="portal-actions">
+      <button type="button" class="primary" id="accept">I understand — continue</button>
+      <a class="ghost-link" href="http://10.13.37.1:8080/" id="dash-link">open operator dashboard ↗</a>
+      <span class="hint">session acknowledgement only</span>
+    </div>
+
+    <div class="online" id="online">
+      <h3>uplink acknowledged</h3>
+      <p>Your acknowledgement is stored in this browser tab. If the dashboard asks for a token, the operator can read it on the device with <code>sudo cat /etc/kraken/api.token</code>.</p>
+      <p>Questions about this deployment: contact the lab operator. To leave, simply disconnect from <b id="net-ssid-2">KRAKEN//LAB</b>.</p>
+    </div>
+  </main>
+
+  <footer class="portal-foot">
+    <span>KRAKEN — private lab network · no credential collection</span>
+    <span>HTTP :80 → portal · API :8080</span>
+  </footer>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const KEY = "kraken.portal.ack";
+  const online = document.getElementById("online");
+  const accept = document.getElementById("accept");
+
+  function show() {
+    online.dataset.visible = "true";
+    accept.textContent = "acknowledged";
+    accept.disabled = true;
+  }
+
+  try {
+    if (sessionStorage.getItem(KEY) === "1") show();
+  } catch { /* storage blocked */ }
+
+  accept.addEventListener("click", () => {
+    try { sessionStorage.setItem(KEY, "1"); } catch { /* ignore */ }
+    show();
+  });
+
+  fetch("/api/portal", { cache: "no-store", headers: { Accept: "application/json" } })
+    .then((response) => (response.ok ? response.json() : null))
+    .then((data) => {
+      if (!data || !data.ok) return;
+      if (data.ssid) {
+        document.getElementById("net-ssid").textContent = data.ssid;
+        document.getElementById("net-ssid-2").textContent = data.ssid;
+      }
+      if (data.portal_ip) {
+        document.getElementById("net-gw").textContent = data.portal_ip;
+        document.getElementById("dash-link").href = `http://${data.portal_ip}:8080/`;
+      }
+      if (data.client_isolation === false) {
+        document.getElementById("net-iso").textContent = "client isolation off";
+      }
+      if (data.portal === false) {
+        document.getElementById("net-iso").textContent = "portal disabled";
+      }
+    })
+    .catch(() => { /* portal still works without telemetry */ });
+})();
+</script>
+</body>
+</html>

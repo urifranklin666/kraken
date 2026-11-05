@@ -1,0 +1,82 @@
+# KRAKEN terminal — Tokyo Night
+[window]
+opacity = 0.94
+padding = { x = 16, y = 14 }
+dynamic_padding = true
+decorations = "none"
+dynamic_title = true
+title = "kraken"
+
+[font]
+size = 11.0
+normal = { family = "JetBrainsMono Nerd Font", style = "Regular" }
+bold = { family = "JetBrainsMono Nerd Font", style = "Bold" }
+italic = { family = "JetBrainsMono Nerd Font", style = "Italic" }
+
+[colors.primary]
+background = "#16161e"
+foreground = "#c0caf5"
+dim_foreground = "#565f89"
+bright_foreground = "#c0caf5"
+
+[colors.cursor]
+text = "#16161e"
+cursor = "#7dcfff"
+
+[colors.vi_mode_cursor]
+text = "#16161e"
+cursor = "#bb9af7"
+
+[colors.search.matches]
+foreground = "#16161e"
+background = "#e0af68"
+
+[colors.search.focused_match]
+foreground = "#16161e"
+background = "#9ece6a"
+
+[colors.footer_bar]
+foreground = "#16161e"
+background = "#565f89"
+
+[colors.selection]
+text = "#16161e"
+background = "#7aa2f7"
+
+[colors.normal]
+black = "#15161e"
+red = "#f7768e"
+green = "#9ece6a"
+yellow = "#e0af68"
+blue = "#7aa2f7"
+magenta = "#bb9af7"
+cyan = "#7dcfff"
+white = "#a9b1d6"
+
+[colors.bright]
+black = "#414868"
+red = "#f7768e"
+green = "#9ece6a"
+yellow = "#e0af68"
+blue = "#7aa2f7"
+magenta = "#bb9af7"
+cyan = "#7dcfff"
+white = "#c0caf5"
+
+[cursor]
+style = { shape = "Beam", blinking = "On" }
+blink_interval = 600
+unfocused_hollow = true
+
+[selection]
+save_to_clipboard = true
+
+[scrolling]
+history = 10000
+multiplier = 3
+
+[mouse]
+hide_when_typing = true
+
+[terminal]
+osc52 = "CopyPaste"
