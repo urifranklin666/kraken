@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# KRAKEN Wayland (Sway) session wrapper for LightDM and TTY logins.
+export XDG_SESSION_TYPE=wayland
+export XDG_CURRENT_DESKTOP=sway
+export XDG_SESSION_DESKTOP=kraken-sway
+export MOZ_ENABLE_WAYLAND=1
+export QT_QPA_PLATFORM="wayland;xcb"
+export SDL_VIDEODRIVER=wayland
+export _JAVA_AWT_WM_NONREPARENTING=1
+export WLR_LIBINPUT_NO_DEVICES=1
+
+if [[ -r /etc/default/keyboard ]]; then
+    # shellcheck disable=SC1091
+    . /etc/default/keyboard
+    export XKB_DEFAULT_MODEL="${XKBMODEL:-pc105}"
+    export XKB_DEFAULT_LAYOUT="${XKBLAYOUT:-us}"
+    export XKB_DEFAULT_VARIANT="${XKBVARIANT:-}"
+    export XKB_DEFAULT_OPTIONS="${XKBOPTIONS:-}"
+fi
+
+exec sway

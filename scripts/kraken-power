@@ -17,7 +17,7 @@ confirm() {
 
 choice="$(pick \
     "lock            screen" \
-    "logout          i3 session" \
+    "logout          desktop session" \
     "restart-kraken  service" \
     "reboot          system" \
     "shutdown        power off" \
@@ -29,7 +29,11 @@ case "$choice" in
         ;;
     logout*)
         if confirm "logout"; then
-            i3-msg exit
+            if [[ -n "${SWAYSOCK:-}" ]] && command -v swaymsg >/dev/null 2>&1; then
+                swaymsg exit
+            else
+                i3-msg exit
+            fi
         fi
         ;;
     restart-kraken*)

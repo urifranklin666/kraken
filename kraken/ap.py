@@ -10,7 +10,16 @@ from typing import Any
 
 from . import net
 from .config import APConfig, GeneralConfig, RadioConfig
-from .util import CommandError, ManagedProcess, output_of, read_text, run_ok, tail_lines
+from .util import (
+    CommandError,
+    ManagedProcess,
+    kill_stale,
+    output_of,
+    read_text,
+    rfkill_unblock_wifi,
+    run_ok,
+    tail_lines,
+)
 
 _log = logging.getLogger("kraken.ap")
 
@@ -158,7 +167,7 @@ class APServe:
         )
         self.dnsmasq = ManagedProcess(
             "dnsmasq",
-            ["dnsmasq", "--keep-in-foreground", "--conf-file", str(self.dnsmasq_conf)],
+            ["dnsmasq", "--keep-in-foreground", f"--conf-file={self.dnsmasq_conf}"],
             self.log_dir / "dnsmasq.log",
         )
         self.channel = cfg.channel
@@ -172,41 +181,41 @@ class APServe:
         return self.hostapd.alive() and self.dnsmasq.alive()
 
     def start(self) -> None:
+        self.iface = self.radio.ap_iface
         self.stop()
         self.run_dir.mkdir(parents=True, exist_ok=True)
         self.log_dir.mkdir(parents=True, exist_ok=True)
+        rfkill_unblock_wifi()
+        net.set_reg_domain(self.cfg.country or self.radio.reg_domain)
         net.nm_set_managed(self.iface, False)
+        run_ok(["nmcli", "device", "disconnect", self.iface], timeout=5)
         net.link_down(self.iface)
         run_ok(["ip", "addr", "flush", "dev", self.iface], timeout=6)
+        time.sleep(0.3)
 
         self.channel = self.cfg.channel
         self.band = self.cfg.band
         hw_mode = "a" if self.band == "5" else "g"
-        self.hostapd_conf.write_text(
-            render_hostapd(self.cfg, self.iface, hw_mode=hw_mode, channel=self.channel),
-            encoding="utf-8",
-        )
-        self.hostapd.start()
-        if not self._wait_for_hostapd():
-            detail = "\n".join(tail_lines(self.log_dir / "hostapd.log", 8))
-            _log.warning("hostapd failed to start on %s: %s", self.iface, detail)
-            if self.cfg.fallback_2g and self.band == "5":
-                _log.warning("falling back to 2.4 GHz AP on channel 6")
-                self.band = "2.4"
-                self.channel = 6
-                self.hostapd_conf.write_text(
-                    render_hostapd(self.cfg, self.iface, hw_mode="g", channel=6),
-                    encoding="utf-8",
-                )
-                self.hostapd.start()
-                if not self._wait_for_hostapd():
-                    self.last_error = "\n".join(tail_lines(self.log_dir / "hostapd.log", 12))
+        if not self._try_hostapd(hw_mode=hw_mode, channel=self.channel):
+            net.link_down(self.iface)
+            time.sleep(0.4)
+            if not self._try_hostapd(hw_mode=hw_mode, channel=self.channel):
+                detail = "\n".join(tail_lines(self.log_dir / "hostapd.log", 8))
+                _log.warning("hostapd failed to start on %s: %s", self.iface, detail)
+                if self.cfg.fallback_2g and self.band == "5":
+                    _log.warning("falling back to 2.4 GHz AP on channel 6")
+                    self.band = "2.4"
+                    self.channel = 6
+                    net.link_down(self.iface)
+                    time.sleep(0.3)
+                    if not self._try_hostapd(hw_mode="g", channel=6):
+                        self.last_error = "\n".join(tail_lines(self.log_dir / "hostapd.log", 12))
+                        self.stop()
+                        raise CommandError(f"hostapd cannot start on {self.iface}: {self.last_error}")
+                else:
+                    self.last_error = detail
                     self.stop()
-                    raise CommandError(f"hostapd cannot start on {self.iface}: {self.last_error}")
-            else:
-                self.last_error = detail
-                self.stop()
-                raise CommandError(f"hostapd cannot start on {self.iface}: {detail}")
+                    raise CommandError(f"hostapd cannot start on {self.iface}: {detail}")
 
         run_ok(
             ["ip", "addr", "replace", f"{self.portal_ip}/24", "dev", self.iface],
@@ -232,7 +241,7 @@ class APServe:
             ),
             encoding="utf-8",
         )
-        test = run_ok(["dnsmasq", "--test", "--conf-file", str(self.dnsmasq_conf)], timeout=8)
+        test = run_ok(["dnsmasq", "--test", f"--conf-file={self.dnsmasq_conf}"], timeout=8)
         if not test:
             self.last_error = "\n".join(tail_lines(self.log_dir / "dnsmasq.log", 8))
             self.stop()
@@ -243,6 +252,10 @@ class APServe:
             self.last_error = "\n".join(tail_lines(self.log_dir / "dnsmasq.log", 8))
             self.stop()
             raise CommandError(f"dnsmasq failed: {self.last_error}")
+        if not self.hostapd.alive():
+            self.last_error = "\n".join(tail_lines(self.log_dir / "hostapd.log", 12))
+            self.stop()
+            raise CommandError(f"hostapd exited on {self.iface}: {self.last_error}")
 
         rules = render_nft(
             self.cfg,
@@ -254,6 +267,7 @@ class APServe:
             isolation=self.cfg.client_isolation,
         )
         net.nft_apply(rules)
+        self.last_error = ""
         self.started_at = time.time()
         _log.info(
             "AP up: ssid=%r iface=%s channel=%s portal=%s uplink=%s",
@@ -264,19 +278,52 @@ class APServe:
             self.uplink.get("iface"),
         )
 
-    def _wait_for_hostapd(self, timeout: float = 4.0) -> bool:
+    def _try_hostapd(self, *, hw_mode: str, channel: int) -> bool:
+        self.hostapd.stop()
+        self.hostapd_conf.write_text(
+            render_hostapd(self.cfg, self.iface, hw_mode=hw_mode, channel=channel),
+            encoding="utf-8",
+        )
+        log_file = self.log_dir / "hostapd.log"
+        try:
+            offset = log_file.stat().st_size if log_file.exists() else 0
+        except OSError:
+            offset = 0
+        self.hostapd.start()
+        return self._wait_for_hostapd(offset=offset)
+
+    def _wait_for_hostapd(self, *, offset: int = 0, timeout: float = 5.0) -> bool:
+        log_file = self.log_dir / "hostapd.log"
         deadline = time.time() + timeout
         while time.time() < deadline:
             if not self.hostapd.alive():
                 return False
-            if net.get_type(self.iface) == "AP":
+            try:
+                with log_file.open("rb") as handle:
+                    handle.seek(offset)
+                    chunk = handle.read().decode("utf-8", errors="replace")
+            except OSError:
+                chunk = ""
+            if any(
+                marker in chunk
+                for marker in (
+                    "AP-DISABLED",
+                    "Unable to setup interface",
+                    "Interface initialization failed",
+                    "CTRL-EVENT-TERMINATING",
+                )
+            ):
+                self.hostapd.stop(timeout=2)
+                return False
+            if "AP-ENABLED" in chunk:
                 return True
-            time.sleep(0.2)
-        return self.hostapd.alive()
+            time.sleep(0.15)
+        return self.hostapd.alive() and net.get_type(self.iface) == "AP"
 
     def stop(self) -> None:
         net.nft_clear()
         self.dnsmasq.stop()
+        kill_stale(self.run_dir / "dnsmasq.pid")
         self.hostapd.stop()
         if net.iface_exists(self.iface):
             run_ok(["ip", "addr", "flush", "dev", self.iface], timeout=6)

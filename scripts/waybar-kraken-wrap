@@ -1,0 +1,74 @@
+#!/usr/bin/env python3
+"""Convert Polybar %{F#...} / %{B#...} output from polybar-kraken* into Waybar Pango markup."""
+import html
+import re
+import subprocess
+import sys
+
+TOKEN_RE = re.compile(r"%\{([FB])([^}]+)\}")
+
+
+def polybar_to_pango(raw: str) -> str:
+    fg = None
+    bg = None
+    out = []
+    pos = 0
+
+    def open_span() -> str:
+        attrs = []
+        if fg:
+            attrs.append(f'foreground="{html.escape(fg, quote=True)}"')
+        if bg:
+            attrs.append(f'background="{html.escape(bg, quote=True)}"')
+        return f"<span {' '.join(attrs)}>" if attrs else ""
+
+    span_open = False
+    for m in TOKEN_RE.finditer(raw):
+        text = raw[pos : m.start()]
+        if text:
+            if not span_open and (fg or bg):
+                out.append(open_span())
+                span_open = True
+            out.append(html.escape(text))
+        kind, val = m.group(1), m.group(2)
+        if span_open:
+            out.append("</span>")
+            span_open = False
+        if kind == "F":
+            fg = None if val == "-" else val
+        elif kind == "B":
+            bg = None if val == "-" else val
+        pos = m.end()
+
+    tail = raw[pos:]
+    if tail:
+        if not span_open and (fg or bg):
+            out.append(open_span())
+            span_open = True
+        out.append(html.escape(tail))
+    if span_open:
+        out.append("</span>")
+
+    return "".join(out)
+
+
+def main() -> int:
+    if len(sys.argv) < 2:
+        return 1
+    try:
+        res = subprocess.run(
+            sys.argv[1:],
+            capture_output=True,
+            text=True,
+            timeout=4,
+            check=False,
+        )
+        raw = (res.stdout or "").strip()
+    except Exception:
+        raw = ""
+    print(polybar_to_pango(raw))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

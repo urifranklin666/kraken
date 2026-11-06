@@ -1,0 +1,77 @@
+/* KRAKEN Waybar — Tokyo Night neon */
+
+* {
+    border: none;
+    border-radius: 0;
+    font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
+    font-size: 13.5px;
+    min-height: 0;
+}
+
+window#waybar {
+    background-color: #16161e;
+    color: #c0caf5;
+    border-bottom: 2px solid #2f3549;
+}
+
+#workspaces button {
+    padding: 0 10px;
+    background-color: transparent;
+    color: #565f89;
+    border-bottom: 2px solid transparent;
+}
+
+#workspaces button.visible {
+    color: #a9b1d6;
+}
+
+#workspaces button.focused {
+    background-color: #7aa2f7;
+    color: #16161e;
+    border-bottom: 2px solid #7dcfff;
+    font-weight: bold;
+}
+
+#workspaces button.urgent {
+    background-color: #f7768e;
+    color: #16161e;
+}
+
+#mode {
+    background-color: #bb9af7;
+    color: #16161e;
+    padding: 0 8px;
+    font-weight: bold;
+}
+
+#custom-kraken,
+#custom-status,
+#custom-stats,
+#custom-uplink,
+#cpu,
+#memory,
+#temperature,
+#pulseaudio,
+#clock,
+#tray {
+    padding: 0 8px;
+    color: #a9b1d6;
+}
+
+#custom-kraken {
+    color: #c0caf5;
+}
+
+#custom-status {
+    color: #565f89;
+}
+
+#clock {
+    color: #7dcfff;
+    padding-right: 12px;
+}
+
+#tray {
+    background-color: #16161e;
+    padding-right: 10px;
+}

@@ -14,7 +14,7 @@ from typing import Any
 
 from . import APP_NAME, DEFAULT_CONFIG, __version__
 from .config import Config, ConfigError
-from .util import human_bytes, human_uptime, is_iface, tail_lines
+from .util import human_bytes, human_uptime, is_iface, tail_lines, which
 
 RESet = "\033[0m"
 BOLD = "\033[1m"
@@ -365,7 +365,7 @@ def cmd_doctor(cfg: Config, args: argparse.Namespace) -> int:
 
     tools = ["iw", "ip", "hostapd", "dnsmasq", "nft", "hcxpcapngtool", "openssl"]
     for tool in tools:
-        path = shutil.which(tool)
+        path = which(tool)
         if path:
             print(color("  ok", GREEN) + f" {tool:<14} {path}")
         else:
@@ -381,12 +381,12 @@ def cmd_doctor(cfg: Config, args: argparse.Namespace) -> int:
             failures += 1
             print(color("  fail", RED) + f" {iface:<14} missing or not wireless")
 
-    if shutil.which("nmcli"):
+    if which("nmcli"):
         print(color("  ok", GREEN) + " NetworkManager present")
     else:
         print(color("  warn", YELLOW) + " nmcli missing; radios may need manual management")
 
-    if not shutil.which("bettercap"):
+    if not which("bettercap"):
         print(color("  warn", YELLOW) + " bettercap missing; MITM unavailable (optional)")
 
     try:

@@ -65,8 +65,31 @@ def output_of(cmd: Sequence[str], *, default: str = "", timeout: float = 20) -> 
     return proc.stdout.strip() if proc.returncode == 0 else default
 
 
+_SYS_PATH = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+
 def which(name: str) -> str | None:
-    return shutil.which(name)
+    path = os.environ.get("PATH", "")
+    search_path = f"{path}:{_SYS_PATH}" if path else _SYS_PATH
+    return shutil.which(name, path=search_path)
+
+
+def rfkill_unblock_wifi() -> None:
+    rfkill_bin = which("rfkill")
+    if rfkill_bin:
+        run_ok([rfkill_bin, "unblock", "wifi"], timeout=5)
+    try:
+        for state_file in Path("/var/lib/systemd/rfkill").glob("*:wlan"):
+            state_file.write_text("0\n", encoding="utf-8")
+    except OSError:
+        pass
+    try:
+        for idx_dir in Path("/sys/class/rfkill").glob("rfkill*"):
+            typ = (idx_dir / "type").read_text(encoding="utf-8").strip()
+            if typ in ("wlan", "wifi"):
+                (idx_dir / "state").write_text("1\n", encoding="utf-8")
+    except OSError:
+        pass
 
 
 def write_atomic(path: str | Path, text: str, mode: int = 0o644) -> None:

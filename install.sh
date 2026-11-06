@@ -12,7 +12,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 IMAGE_MODE=0
 KUSER=""
 KHOME=""
-KHOST="kraken"
+KHOST="krakenpi"
 WITH_MITM=1
 WITH_DESKTOP=1
 FORCE_CONFIG=0
@@ -100,6 +100,7 @@ PKGS=(
 DESKTOP_PKGS=(
     xserver-xorg xinit x11-xserver-utils
     i3-wm polybar rofi picom feh dunst alacritty
+    sway swaybg swaylock waybar xwayland grim slurp wl-clipboard wlr-randr
     chromium
     lightdm lightdm-gtk-greeter
     maim xclip xdotool wmctrl i3lock
@@ -166,16 +167,18 @@ fi
 
 # ------------------------------------------------------------------- layout
 install -d -m 0755 /opt/kraken /opt/kraken/app
-install -d -m 0750 /etc/kraken /etc/kraken/tls
-install -d -m 0750 /var/lib/kraken /var/log/kraken
-install -d -m 0770 /run/kraken
+install -d -o root -g kraken -m 0750 /etc/kraken /etc/kraken/tls
+install -d -o root -g kraken -m 0750 /var/lib/kraken /var/log/kraken
+install -d -o root -g kraken -m 0770 /run/kraken
 install -d -m 0755 /usr/share/kraken
 
-log "copying application to /opt/kraken/app"
-tar -C "$ROOT" \
-    --exclude=.git --exclude=image --exclude=tools \
-    --exclude='__pycache__' --exclude='*.pyc' \
-    -cf - . | tar -C /opt/kraken/app -xf -
+if [[ "$(realpath "$ROOT")" != "/opt/kraken/app" ]]; then
+    log "copying application to /opt/kraken/app"
+    tar -C "$ROOT" \
+        --exclude=.git --exclude=image --exclude=tools \
+        --exclude='__pycache__' --exclude='*.pyc' \
+        -cf - . | tar -C /opt/kraken/app -xf -
+fi
 find /opt/kraken/app -type d -name __pycache__ -prune -exec rm -rf {} + 2>/dev/null || true
 
 cat >/usr/local/bin/kraken <<'PY'
@@ -298,8 +301,12 @@ if [[ $WITH_DESKTOP -eq 1 ]]; then
     UCONF="$KHOME/.config"
 
     install_user_file "$ROOT/desktop/i3/config" "$UCONF/i3/config"
+    install_user_file "$ROOT/desktop/sway/config" "$UCONF/sway/config"
     install_user_file "$ROOT/desktop/polybar/config.ini" "$UCONF/polybar/config.ini"
     install_user_file "$ROOT/desktop/polybar/launch.sh" "$UCONF/polybar/launch.sh" 0755
+    install_user_file "$ROOT/desktop/waybar/config.jsonc" "$UCONF/waybar/config.jsonc"
+    install_user_file "$ROOT/desktop/waybar/style.css" "$UCONF/waybar/style.css"
+    install_user_file "$ROOT/desktop/waybar/launch.sh" "$UCONF/waybar/launch.sh" 0755
     install_user_file "$ROOT/desktop/rofi/kraken.rasi" "$UCONF/rofi/kraken.rasi"
     install_user_file "$ROOT/desktop/picom/picom.conf" "$UCONF/picom/picom.conf"
     install_user_file "$ROOT/desktop/alacritty/alacritty.toml" "$UCONF/alacritty/alacritty.toml"
@@ -308,6 +315,9 @@ if [[ $WITH_DESKTOP -eq 1 ]]; then
     install_user_file "$ROOT/desktop/fastfetch/kraken.txt" "$UCONF/fastfetch/kraken.txt"
     install_user_file "$ROOT/desktop/cava/config" "$UCONF/cava/config"
     install_user_file "$ROOT/desktop/chromium/mimeapps.list" "$UCONF/mimeapps.list"
+    if [[ -d /etc/chromium.d && -f "$ROOT/desktop/chromium/10-kraken-singleton" ]]; then
+        install -m 0644 "$ROOT/desktop/chromium/10-kraken-singleton" /etc/chromium.d/10-kraken-singleton
+    fi
 
     # ~/.config must belong to the user: chromium, dconf and friends create
     # their state here and abort at startup if it is root-owned.
@@ -330,10 +340,21 @@ EOF
     fi
 
     install -m 0644 "$ROOT/desktop/xsessions/kraken-i3.desktop" /usr/share/xsessions/kraken-i3.desktop
+    install -d -m 0755 /usr/share/wayland-sessions
+    install -m 0644 "$ROOT/desktop/wayland-sessions/kraken-sway.desktop" /usr/share/wayland-sessions/kraken-sway.desktop
+    ln -sf kraken-sway.desktop /usr/share/wayland-sessions/LXDE-pi-labwc.desktop
+    rm -f /etc/systemd/user/graphical-session.target.wants/waybar.service 2>/dev/null || true
     install -d -m 0755 /etc/lightdm/lightdm.conf.d
     sed "s/@KRAKEN_USER@/$KUSER/" "$ROOT/desktop/lightdm/60-kraken.conf" \
         >/etc/lightdm/lightdm.conf.d/60-kraken.conf
     chmod 0644 /etc/lightdm/lightdm.conf.d/60-kraken.conf
+    if [[ -f /etc/lightdm/lightdm.conf ]]; then
+        sed -i \
+            -e 's/^user-session=.*/#user-session=default/' \
+            -e 's/^autologin-session=.*/#autologin-session=/' \
+            -e 's/^greeter-session=.*/#greeter-session=example-gtk-gnome/' \
+            /etc/lightdm/lightdm.conf || true
+    fi
 
     log "rendering the wallpaper"
     if command -v rsvg-convert >/dev/null 2>&1; then

@@ -127,7 +127,8 @@
     let data = {};
     try { data = await response.json(); } catch { /* empty body */ }
     if (!response.ok || data.ok === false) {
-      throw new Error(data.error || `${response.status} ${response.statusText}`);
+      const detail = data.error || (Array.isArray(data.errors) && data.errors.join("; "));
+      throw new Error(detail || `${response.status} ${response.statusText}`);
     }
     return data;
   }

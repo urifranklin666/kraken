@@ -27,6 +27,7 @@ from .state import Store
 from .util import (
     CommandError,
     ensure_dir,
+    rfkill_unblock_wifi,
     human_uptime,
     run,
     setup_logging,
@@ -157,6 +158,16 @@ class KrakenDaemon:
             except Exception as exc:  # noqa: BLE001
                 errors.append(f"capture stop: {exc}")
 
+            if mode != "idle":
+                ap_iface, mon_iface = net.ensure_radio_roles(
+                    self.cfg.radio.ap_iface, self.cfg.radio.monitor_iface
+                )
+                self.cfg.radio.ap_iface = ap_iface
+                self.cfg.radio.monitor_iface = mon_iface
+                self.ap.iface = ap_iface
+                self.capture.radio.iface = mon_iface
+                self.mitm.ap_iface = ap_iface
+
             if mode in ("ap", "hybrid"):
                 try:
                     self.ap.start()
@@ -167,6 +178,21 @@ class KrakenDaemon:
                     self.capture.start()
                 except Exception as exc:  # noqa: BLE001
                     errors.append(f"capture: {exc}")
+
+            if mode in ("ap", "hybrid") and not self.ap.running:
+                try:
+                    self.ap.stop()
+                except Exception:
+                    pass
+                if not any(err.startswith("AP:") for err in errors):
+                    errors.append("AP: failed to stay running")
+            if mode in ("recon", "hybrid") and not self.capture.running:
+                try:
+                    self.capture.stop()
+                except Exception:
+                    pass
+                if not any(err.startswith("capture:") for err in errors):
+                    errors.append("capture: failed to stay running")
 
             if mode == "hybrid" and not self.ap.running and not self.capture.running:
                 mode = "idle"
@@ -186,7 +212,10 @@ class KrakenDaemon:
                 self.write_status()
             except Exception:
                 pass
-            return {"ok": not errors, "mode": mode, "errors": errors}
+            result: dict[str, Any] = {"ok": not errors, "mode": mode, "errors": errors}
+            if errors:
+                result["error"] = "; ".join(errors)
+            return result
 
     def set_ap_config(self, payload: dict[str, Any]) -> dict[str, Any]:
         with self._lock:
@@ -600,12 +629,16 @@ class KrakenDaemon:
         key = Path(self.cfg.general.key_file)
         if not cert.exists() or not key.exists():
             self._generate_certificate(cert, key)
+        rfkill_unblock_wifi()
         try:
             os.chmod(self.run_dir, 0o770)
             os.chmod(self.data_dir, 0o750)
+            os.chmod(self.log_dir, 0o750)
+            os.chmod(token_path.parent, 0o750)
         except OSError:
             pass
-        self._chown_kraken(self.run_dir)
+        for d in (self.run_dir, self.data_dir, self.log_dir, token_path.parent):
+            self._chown_kraken(d)
 
     def _chown_kraken(self, path: Path) -> None:
         try:

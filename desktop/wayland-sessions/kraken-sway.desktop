@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=KRAKEN Sway
+Comment=Tokyo Night Sway Wayland cyberdeck session
+Exec=kraken-sway-session
+TryExec=kraken-sway-session
+Type=Application
+DesktopNames=sway
+X-LightDM-DesktopName=KRAKEN Sway
+Keywords=desktop;shell;sway;wayland;kraken;

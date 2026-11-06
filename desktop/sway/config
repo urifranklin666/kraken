@@ -1,0 +1,205 @@
+# KRAKEN Sway (Wayland) session — Tokyo Night neon
+# Native Wayland counterpart to ~/.config/i3/config (compatible with rpi-connect / wayvnc)
+
+set $mod Mod4
+
+set $bg        #16161e
+set $bg-alt    #1a1b26
+set $bg-soft   #1f2335
+set $fg        #c0caf5
+set $muted     #565f89
+set $blue      #7aa2f7
+set $cyan      #7dcfff
+set $magenta   #bb9af7
+set $green     #9ece6a
+set $yellow    #e0af68
+set $red       #f7768e
+set $wallpaper /usr/share/kraken/wallpaper.png
+
+# output & input ------------------------------------------------------------
+output * bg $wallpaper fill #16161e
+
+input "type:keyboard" {
+    xkb_layout us
+    repeat_delay 250
+    repeat_rate 35
+}
+
+# fonts ---------------------------------------------------------------------
+font pango:JetBrainsMono Nerd Font 10
+
+# look ----------------------------------------------------------------------
+default_border pixel 2
+default_floating_border pixel 2
+hide_edge_borders smart
+gaps inner 10
+gaps outer 14
+smart_gaps on
+title_align left
+focus_follows_mouse no
+mouse_warping output
+popup_during_fullscreen smart
+workspace_auto_back_and_forth yes
+floating_modifier $mod normal
+
+client.focused          $blue    $blue    $bg     $cyan    $blue
+client.focused_inactive $bg-soft $bg-soft $fg     $muted   $bg-soft
+client.unfocused        $bg-alt  $bg-alt  $muted  $bg-alt  $bg-alt
+client.urgent           $red     $red     $bg     $yellow  $red
+client.placeholder      $bg-alt  $bg-alt  $fg     $bg-alt  $bg-alt
+client.background       $bg
+
+# workspace names -----------------------------------------------------------
+set $ws1  "1:term"
+set $ws2  "2:web"
+set $ws3  "3:wifi"
+set $ws4  "4:cap"
+set $ws5  "5:stats"
+set $ws6  "6:lab"
+set $ws7  "7:notes"
+set $ws8  "8:media"
+set $ws9  "9:sys"
+set $ws10 "10:scratch"
+
+# launchers -----------------------------------------------------------------
+bindsym $mod+Return          exec alacritty
+bindsym $mod+Shift+Return    exec alacritty --class kraken-term
+bindsym $mod+d               exec rofi -show drun -theme ~/.config/rofi/kraken.rasi
+bindsym $mod+Shift+b         exec kraken-browser
+bindsym $mod+Shift+d         exec kraken-dashboard
+bindsym $mod+F1              exec kraken-help
+bindsym $mod+Shift+space     exec kraken-menu
+bindsym $mod+Shift+e         exec kraken-power
+# not $mod+Shift+l: that is "move right" (h/j/k/l move bindings)
+bindsym $mod+Control+l       exec kraken-lock
+bindsym $mod+Shift+x         exec kraken-panic
+bindsym $mod+Shift+w         exec kraken-web
+bindsym --locked XF86AudioRaiseVolume exec kraken-volume up
+bindsym --locked XF86AudioLowerVolume exec kraken-volume down
+bindsym --locked XF86AudioMute        exec kraken-volume mute
+bindsym --locked XF86MonBrightnessUp   exec kraken-brightness up
+bindsym --locked XF86MonBrightnessDown exec kraken-brightness down
+bindsym Print                exec kraken-screenshot full
+bindsym $mod+Print           exec kraken-screenshot region
+bindsym $mod+Shift+Print     exec kraken-screenshot window
+
+# window management ---------------------------------------------------------
+bindsym $mod+Shift+q kill
+bindsym $mod+f fullscreen toggle
+bindsym $mod+Shift+f floating toggle
+bindsym $mod+space floating toggle
+bindsym $mod+a focus parent
+bindsym $mod+Shift+a focus child
+bindsym $mod+minus scratchpad show
+bindsym $mod+Shift+minus move scratchpad
+
+# focus ---------------------------------------------------------------------
+set $left  h
+set $down  j
+set $up    k
+set $right l
+
+bindsym $mod+$left  focus left
+bindsym $mod+$down  focus down
+bindsym $mod+$up    focus up
+bindsym $mod+$right focus right
+bindsym $mod+Left  focus left
+bindsym $mod+Down  focus down
+bindsym $mod+Up    focus up
+bindsym $mod+Right focus right
+
+# move ----------------------------------------------------------------------
+bindsym $mod+Shift+$left  move left
+bindsym $mod+Shift+$down  move down
+bindsym $mod+Shift+$up    move up
+bindsym $mod+Shift+$right move right
+bindsym $mod+Shift+Left  move left
+bindsym $mod+Shift+Down  move down
+bindsym $mod+Shift+Up    move up
+bindsym $mod+Shift+Right move right
+
+# layout --------------------------------------------------------------------
+bindsym $mod+b split h
+bindsym $mod+v split v
+bindsym $mod+s layout stacking
+bindsym $mod+z layout tabbed
+bindsym $mod+e layout toggle split
+bindsym $mod+Shift+z layout toggle split
+
+# workspaces ----------------------------------------------------------------
+bindsym $mod+1 workspace $ws1
+bindsym $mod+2 workspace $ws2
+bindsym $mod+3 workspace $ws3
+bindsym $mod+4 workspace $ws4
+bindsym $mod+5 workspace $ws5
+bindsym $mod+6 workspace $ws6
+bindsym $mod+7 workspace $ws7
+bindsym $mod+8 workspace $ws8
+bindsym $mod+9 workspace $ws9
+bindsym $mod+0 workspace $ws10
+
+bindsym $mod+Shift+1 move container to workspace $ws1
+bindsym $mod+Shift+2 move container to workspace $ws2
+bindsym $mod+Shift+3 move container to workspace $ws3
+bindsym $mod+Shift+4 move container to workspace $ws4
+bindsym $mod+Shift+5 move container to workspace $ws5
+bindsym $mod+Shift+6 move container to workspace $ws6
+bindsym $mod+Shift+7 move container to workspace $ws7
+bindsym $mod+Shift+8 move container to workspace $ws8
+bindsym $mod+Shift+9 move container to workspace $ws9
+bindsym $mod+Shift+0 move container to workspace $ws10
+
+bindsym $mod+Tab workspace back_and_forth
+bindsym $mod+ctrl+Right workspace next_on_output
+bindsym $mod+ctrl+Left  workspace prev_on_output
+
+# session -------------------------------------------------------------------
+bindsym $mod+Shift+c reload
+bindsym $mod+Shift+r exec sh -c 'swaymsg reload; ~/.config/waybar/launch.sh'
+bindsym $mod+Shift+Escape exec swaymsg exit
+bindsym $mod+Shift+p exec kraken-power
+
+# resize mode ---------------------------------------------------------------
+mode "resize" {
+    bindsym $left  resize shrink width 5 px or 5 ppt
+    bindsym $down  resize grow height 5 px or 5 ppt
+    bindsym $up    resize shrink height 5 px or 5 ppt
+    bindsym $right resize grow width 5 px or 5 ppt
+    bindsym Left  resize shrink width 5 px or 5 ppt
+    bindsym Down  resize grow height 5 px or 5 ppt
+    bindsym Up    resize shrink height 5 px or 5 ppt
+    bindsym Right resize grow width 5 px or 5 ppt
+    bindsym Return mode "default"
+    bindsym Escape mode "default"
+}
+
+bindsym $mod+r mode "resize"
+
+# window rules --------------------------------------------------------------
+# kraken-dashboard launches Chromium with --class=Kraken
+for_window [class="Kraken"] move to workspace $ws2, workspace $ws2
+for_window [app_id="^[Kk]raken$"] move to workspace $ws2, workspace $ws2
+for_window [app_id="^chrome-127\.0\.0\.1"] move to workspace $ws2, workspace $ws2
+for_window [title="^KRAKEN //"] move to workspace $ws2, workspace $ws2
+for_window [class="Chromium" title="KRAKEN.*"] move to workspace $ws2, workspace $ws2
+for_window [app_id="^chromium$" title="KRAKEN.*"] move to workspace $ws2, workspace $ws2
+for_window [class="kraken-term"] floating enable, resize set 1100 640, move position center
+for_window [app_id="kraken-term"] floating enable, resize set 1100 640, move position center
+for_window [window_role="pop-up"] floating enable
+for_window [window_role="task_dialog"] floating enable
+for_window [class="Pavucontrol"] floating enable, resize set 720 520, move position center
+for_window [app_id="pavucontrol"] floating enable, resize set 720 520, move position center
+for_window [class="Nm-connection-editor"] floating enable, resize set 900 620, move position center
+for_window [app_id="nm-connection-editor"] floating enable, resize set 900 620, move position center
+for_window [class="Lxappearance"] floating enable
+for_window [class="Gcolor3"] floating enable
+for_window [class="Yad"] floating enable, border normal
+for_window [app_id="yad"] floating enable, border normal
+for_window [title="^(Open|Save)"] floating enable
+for_window [class="feh"] floating enable, fullscreen enable
+
+# autostart -----------------------------------------------------------------
+exec sh -c 'systemctl --user import-environment DISPLAY WAYLAND_DISPLAY SWAYSOCK XDG_CURRENT_DESKTOP XDG_SESSION_TYPE; dbus-update-activation-environment --systemd DISPLAY WAYLAND_DISPLAY SWAYSOCK XDG_CURRENT_DESKTOP=sway XDG_SESSION_TYPE=wayland; if [ "$(swaymsg -t get_outputs 2>/dev/null | grep -c "\"name\":")" -eq 0 ]; then swaymsg create_output; swaymsg output HEADLESS-1 resolution 1600x900; fi; systemctl --user restart rpi-connect-wayvnc.service 2>/dev/null || true'
+exec sh -c 'pkill -x dunst 2>/dev/null || true; exec dunst'
+exec ~/.config/waybar/launch.sh
+exec kraken-autostart

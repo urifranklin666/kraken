@@ -6,8 +6,18 @@ WALLPAPER="${KRAKEN_WALLPAPER:-/usr/share/kraken/wallpaper.png}"
 
 notify() { command -v notify-send >/dev/null 2>&1 && notify-send -a KRAKEN "$@" || true; }
 
+if [[ -n "${WAYLAND_DISPLAY:-}" ]]; then
+    if command -v swaylock >/dev/null 2>&1; then
+        args=(-f -c 16161e)
+        if [[ -f "$WALLPAPER" ]]; then
+            args+=(-i "$WALLPAPER" -s fill)
+        fi
+        exec swaylock "${args[@]}"
+    fi
+fi
+
 if ! command -v i3lock >/dev/null 2>&1; then
-    notify "lock unavailable" "i3lock is not installed"
+    notify "lock unavailable" "swaylock / i3lock is not installed"
     exit 1
 fi
 

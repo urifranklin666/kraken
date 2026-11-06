@@ -1,0 +1,8 @@
+# Clean stale Chromium singleton lock if hostname changed and no Chromium process is running.
+if [ -L "$HOME/.config/chromium/SingletonLock" ]; then
+    if ! pgrep -u "$(id -u)" -x chromium >/dev/null 2>&1 && ! pgrep -u "$(id -u)" -f '/usr/lib/chromium/chromium' >/dev/null 2>&1; then
+        rm -f "$HOME/.config/chromium/SingletonLock" \
+              "$HOME/.config/chromium/SingletonCookie" \
+              "$HOME/.config/chromium/SingletonSocket" 2>/dev/null || true
+    fi
+fi

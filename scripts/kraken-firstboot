@@ -10,7 +10,8 @@ if [[ -f "$MARKER" ]]; then
 fi
 
 mkdir -p /var/lib/kraken /var/log/kraken /run/kraken /etc/kraken/tls
-chmod 0750 /var/lib/kraken /var/log/kraken
+chown root:kraken /etc/kraken /etc/kraken/tls /var/lib/kraken /var/log/kraken /run/kraken 2>/dev/null || true
+chmod 0750 /etc/kraken /etc/kraken/tls /var/lib/kraken /var/log/kraken
 chmod 0770 /run/kraken
 
 reg="US"
@@ -30,9 +31,18 @@ fi
 if command -v iw >/dev/null 2>&1; then
     iw reg set "$reg" 2>/dev/null || true
 fi
+for state_file in /var/lib/systemd/rfkill/*:wlan; do
+    [[ -e "$state_file" ]] && echo 0 > "$state_file" 2>/dev/null || true
+done
 if command -v rfkill >/dev/null 2>&1; then
     rfkill unblock wifi 2>/dev/null || true
 fi
+for idx_dir in /sys/class/rfkill/rfkill*; do
+    [[ -r "$idx_dir/type" ]] || continue
+    if [[ "$(cat "$idx_dir/type" 2>/dev/null)" =~ ^(wlan|wifi)$ ]]; then
+        echo 1 > "$idx_dir/state" 2>/dev/null || true
+    fi
+done
 
 # The daemon launches hostapd and dnsmasq itself; distro units must not race it.
 for unit in hostapd.service dnsmasq.service; do

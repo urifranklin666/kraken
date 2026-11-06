@@ -10,6 +10,7 @@ is intended only for networks you own or have written authorization to test.
 
 from __future__ import annotations
 
+import errno
 import logging
 import os
 import select
@@ -24,7 +25,7 @@ from . import __version__, net
 from .config import Config
 from .pcap import Frame, PcapngWriter, build_deauth, parse_frame
 from .state import Store
-from .util import CommandError, mac_is_group, run, which
+from .util import CommandError, mac_is_group, rfkill_unblock_wifi, run, run_ok, which
 
 ETH_P_ALL = 0x0003
 
@@ -79,14 +80,17 @@ class Radio:
             raise CommandError(f"wireless interface {self.iface} does not exist")
         if not net.is_wireless(self.iface):
             raise CommandError(f"{self.iface} is not a wireless interface")
+        rfkill_unblock_wifi()
         net.set_reg_domain(self.reg_domain)
         net.nm_set_managed(self.iface, False)
+        run_ok(["nmcli", "device", "disconnect", self.iface], timeout=5)
         net.link_down(self.iface)
         if not net.set_type(self.iface, "monitor"):
             raise CommandError(f"cannot put {self.iface} into monitor mode")
         net.link_up(self.iface)
         net.set_power_save(self.iface, False)
         time.sleep(0.3)
+        net.link_up(self.iface)
         current = net.get_type(self.iface)
         if current != "monitor":
             raise CommandError(f"{self.iface} is in {current!r} mode, not monitor")
@@ -181,6 +185,7 @@ class CaptureEngine:
     def start(self) -> None:
         if self.running:
             return
+        self.radio.iface = self.cfg.radio.monitor_iface
         self.captures_dir.mkdir(parents=True, exist_ok=True)
         self._prune_captures()
         self._stop.clear()
@@ -295,6 +300,10 @@ class CaptureEngine:
             except (BlockingIOError, InterruptedError):
                 continue
             except OSError as exc:
+                if exc.errno == errno.ENETDOWN and not self._stop.is_set():
+                    net.link_up(self.cfg.radio.monitor_iface)
+                    time.sleep(0.2)
+                    continue
                 if not self._stop.is_set():
                     self._error = f"capture socket error: {exc}"
                     self._log.error(self._error)

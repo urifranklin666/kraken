@@ -10,7 +10,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-from .util import CommandError, output_of, run, run_ok, write_atomic
+from .util import CommandError, output_of, rfkill_unblock_wifi, run, run_ok, which, write_atomic
 
 NFT_TABLE = "inet kraken"
 
@@ -32,6 +32,68 @@ def list_wireless() -> list[str]:
     )
 
 
+def supports_monitor(iface: str) -> bool:
+    try:
+        phy = Path(f"/sys/class/net/{iface}/phy80211/name").read_text(encoding="utf-8").strip()
+    except OSError:
+        return False
+    if not phy:
+        return False
+    info = output_of(["iw", "phy", phy, "info"], timeout=6)
+    in_modes = False
+    for line in info.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("Supported interface modes:"):
+            in_modes = True
+            continue
+        if in_modes:
+            if stripped.startswith("* "):
+                if stripped[2:].strip() == "monitor":
+                    return True
+            else:
+                break
+    return False
+
+
+def ensure_radio_roles(ap_iface: str, monitor_iface: str) -> tuple[str, str]:
+    """Ensure ``ap_iface`` and ``monitor_iface`` match their hardware roles.
+
+    On Raspberry Pi 4 booting with an external USB monitor adapter (e.g. RT5370),
+    kernel probe timing can enumerate the USB adapter as ``wlan0`` and the
+    onboard ``brcmfmac`` radio as ``wlan1``.  When ``monitor_iface`` lacks
+    monitor-mode support and ``ap_iface`` has it, swap the kernel interface
+    names (or fall back to swapping the role assignment).
+    """
+    if (
+        not ap_iface
+        or not monitor_iface
+        or ap_iface == monitor_iface
+        or not is_wireless(ap_iface)
+        or not is_wireless(monitor_iface)
+    ):
+        return ap_iface, monitor_iface
+    if supports_monitor(monitor_iface) or not supports_monitor(ap_iface):
+        return ap_iface, monitor_iface
+
+    tmp = "kraken_swap0"
+    nm_set_managed(ap_iface, False)
+    nm_set_managed(monitor_iface, False)
+    link_down(ap_iface)
+    link_down(monitor_iface)
+    if iface_exists(tmp):
+        link_down(tmp)
+    if run_ok(["ip", "link", "set", "dev", ap_iface, "name", tmp], timeout=6):
+        if run_ok(["ip", "link", "set", "dev", monitor_iface, "name", ap_iface], timeout=6):
+            if run_ok(["ip", "link", "set", "dev", tmp, "name", monitor_iface], timeout=6):
+                return ap_iface, monitor_iface
+            run_ok(["ip", "link", "set", "dev", ap_iface, "name", monitor_iface], timeout=6)
+        run_ok(["ip", "link", "set", "dev", tmp, "name", ap_iface], timeout=6)
+
+    if supports_monitor(monitor_iface):
+        return ap_iface, monitor_iface
+    return monitor_iface, ap_iface
+
+
 def nm_set_managed(iface: str, managed: bool) -> bool:
     if not run_ok(["nmcli", "--version"], timeout=5):
         return False
@@ -42,6 +104,9 @@ def nm_set_managed(iface: str, managed: bool) -> bool:
 
 
 def link_up(iface: str) -> bool:
+    if run_ok(["ip", "link", "set", "dev", iface, "up"], timeout=6):
+        return True
+    rfkill_unblock_wifi()
     return run_ok(["ip", "link", "set", "dev", iface, "up"], timeout=6)
 
 

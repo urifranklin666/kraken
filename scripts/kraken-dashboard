@@ -8,7 +8,26 @@ if [[ -n "$TOKEN" && "$URL" != *#* ]]; then
     URL="${URL}#token=${TOKEN}"
 fi
 
+clean_stale_singleton() {
+    local profile_dir="${HOME}/.config/chromium"
+    local lock="${profile_dir}/SingletonLock"
+    [[ -L "$lock" ]] || return 0
+    if pgrep -u "$(id -u)" -x chromium >/dev/null 2>&1 || pgrep -u "$(id -u)" -f '/usr/lib/chromium/chromium' >/dev/null 2>&1; then
+        return 0
+    fi
+    rm -f "${profile_dir}/SingletonLock" "${profile_dir}/SingletonCookie" "${profile_dir}/SingletonSocket" 2>/dev/null || true
+}
+
 focus_existing() {
+    if [[ -n "${SWAYSOCK:-}" ]] && command -v swaymsg >/dev/null 2>&1; then
+        if swaymsg -t get_tree 2>/dev/null | grep -qE '"(class|app_id)": *"([Kk]raken|chrome-127\.0\.0\.1)'; then
+            swaymsg '[app_id="^chrome-127\.0\.0\.1"] focus' >/dev/null 2>&1 \
+                || swaymsg '[class="Kraken"] focus' >/dev/null 2>&1 \
+                || swaymsg '[app_id="[Kk]raken"] focus' >/dev/null 2>&1 \
+                || true
+            return 0
+        fi
+    fi
     if command -v wmctrl >/dev/null 2>&1 && wmctrl -xa Kraken 2>/dev/null; then
         return 0
     fi
@@ -24,6 +43,7 @@ focus_existing() {
 }
 
 focus_existing && exit 0
+clean_stale_singleton
 
 for browser in chromium chromium-browser google-chrome-stable; do
     if command -v "$browser" >/dev/null 2>&1; then

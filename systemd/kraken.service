@@ -10,8 +10,8 @@ StartLimitBurst=4
 [Service]
 Type=simple
 User=root
-Group=root
-ExecStart=/usr/local/bin/kraken daemon
+Group=kraken
+ExecStart=/usr/local/bin/kraken daemon --authorized
 Restart=on-failure
 RestartSec=5
 TimeoutStartSec=90

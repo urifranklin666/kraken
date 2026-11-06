@@ -15,7 +15,7 @@ Related: `HOTKEYS.md` (same directory, also installed at
 ## 1. Boot and sign-in
 
 1. Plug the USB stick into a Pi 4 and power on. The stick is the boot disk.
-2. lightdm starts and logs the desktop user in automatically — no greeter, no
+2. lightdm starts and logs `urifranklin` in automatically — no greeter, no
    password prompt.
 3. i3 comes up with polybar on top, the KRAKEN wallpaper, dunst notifications,
    and (if the daemon is healthy) the dashboard on workspace `2:web`.
@@ -23,9 +23,8 @@ Related: `HOTKEYS.md` (same directory, also installed at
 If you land on a console instead of the desktop, log in and run
 `systemctl restart lightdm`, then check `~/.xsession-errors`.
 
-The desktop user is the account `install.sh --user NAME` provisioned (uid 1001
-by default; `echo $USER` in a terminal names it). It is in the `sudo`, `video`,
-`render`, `audio` and `kraken` groups. `pi` exists but is login-disabled.
+The desktop user is `urifranklin` (uid 1001, in `sudo`, `video`, `render`,
+`audio`, `kraken`). `pi` exists but is login-disabled.
 
 ---
 
@@ -93,7 +92,7 @@ root, so Chromium could not create `~/.config/chromium`. The fix, already
 applied on this stick and in `install.sh`:
 
 ```sh
-sudo chown -R "$USER":"$USER" ~/.config
+sudo chown -R urifranklin:urifranklin ~/.config
 ```
 
 Check the browser independently of the desktop:
@@ -159,7 +158,7 @@ Terminal aliases: `k`, `ks`, `kd`, `kw`, `km`, `ka`, `kc`, `kh`, `kl`, `kdoc`,
 
 | Symptom | Cause | Fix |
 |---------|-------|-----|
-| Browser closes instantly / `Failed to get the path` | `~/.config` not writable by the user | `sudo chown -R "$USER":"$USER" ~/.config` |
+| Browser closes instantly / `Failed to get the path` | `~/.config` not writable by the user | `sudo chown -R urifranklin:urifranklin ~/.config` |
 | `No usable sandbox` from Chromium | unprivileged user namespaces disabled | `sudo sysctl -w kernel.unprivileged_userns_clone=1` |
 | No transparency, shadows or rounded corners | picom exited at login | `picom --config ~/.config/picom/picom.conf --diagnostics`; the shipped config uses the `xrender` backend because the Pi's DRI2 GLX provider rejects picom's fbconfig request |
 | Bar shows `%percentage%` / `%percentage:2%` | wrong token for the module version | memory uses `%percentage_used%`; the shipped config is fixed. Verify with `polybar -c ~/.config/polybar/config.ini --log=info kraken` |

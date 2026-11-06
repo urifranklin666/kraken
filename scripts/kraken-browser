@@ -10,6 +10,16 @@ URL="${1:-${KRAKEN_URL:-http://127.0.0.1:8080/}}"
 
 notify() { command -v notify-send >/dev/null 2>&1 && notify-send -a KRAKEN "$@" || true; }
 
+clean_stale_singleton() {
+    local profile_dir="${HOME}/.config/chromium"
+    local lock="${profile_dir}/SingletonLock"
+    [[ -L "$lock" ]] || return 0
+    if pgrep -u "$(id -u)" -x chromium >/dev/null 2>&1 || pgrep -u "$(id -u)" -f '/usr/lib/chromium/chromium' >/dev/null 2>&1; then
+        return 0
+    fi
+    rm -f "${profile_dir}/SingletonLock" "${profile_dir}/SingletonCookie" "${profile_dir}/SingletonSocket" 2>/dev/null || true
+}
+
 browser=""
 for candidate in chromium chromium-browser google-chrome-stable; do
     if command -v "$candidate" >/dev/null 2>&1; then
@@ -34,4 +44,5 @@ flags=(
 # shellcheck disable=SC2206
 [[ -n "${KRAKEN_BROWSER_FLAGS:-}" ]] && flags+=(${KRAKEN_BROWSER_FLAGS})
 
+clean_stale_singleton
 exec "$browser" "${flags[@]}" "$URL"

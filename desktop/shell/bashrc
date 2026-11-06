@@ -1,6 +1,12 @@
 # KRAKEN interactive shell — Tokyo Night neon
 # Installed as /etc/profile.d/kraken.sh and sourced from ~/.bashrc.
 
+for __sdir in /usr/local/sbin /usr/sbin /sbin; do
+    [[ ":$PATH:" != *":${__sdir}:"* ]] && PATH="${PATH}:${__sdir}"
+done
+export PATH
+unset __sdir
+
 [[ $- != *i* ]] && return
 
 # history -------------------------------------------------------------------
@@ -96,8 +102,10 @@ alias gc='git commit'
 alias gp='git push'
 
 alias welcome='fastfetch'
-alias reload-i3='i3-msg reload'
-alias restart-i3='i3-msg restart'
+alias reload-i3='if [ -n "${SWAYSOCK:-}" ]; then swaymsg reload; else i3-msg reload; fi'
+alias restart-i3='if [ -n "${SWAYSOCK:-}" ]; then swaymsg reload && ~/.config/waybar/launch.sh; else i3-msg restart; fi'
+alias reload-sway='swaymsg reload'
+alias restart-sway='swaymsg reload && ~/.config/waybar/launch.sh'
 
 # safety net ----------------------------------------------------------------
 alias rm='rm -i'

@@ -1,0 +1,101 @@
+{
+    "layer": "top",
+    "position": "top",
+    "height": 36,
+    "spacing": 8,
+    "modules-left": [
+        "sway/workspaces",
+        "sway/mode",
+        "custom/kraken"
+    ],
+    "modules-center": [
+        "custom/status",
+        "custom/stats"
+    ],
+    "modules-right": [
+        "cpu",
+        "memory",
+        "temperature",
+        "custom/uplink",
+        "pulseaudio",
+        "clock",
+        "tray"
+    ],
+    "sway/workspaces": {
+        "disable-scroll": false,
+        "all-outputs": true,
+        "format": "{name}"
+    },
+    "sway/mode": {
+        "format": "{}"
+    },
+    "custom/kraken": {
+        "exec": "waybar-kraken-wrap polybar-kraken",
+        "interval": 2,
+        "format": "<span foreground=\"#bb9af7\">◈ </span>{}",
+        "on-click": "kraken-menu",
+        "on-click-right": "kraken-dashboard",
+        "tooltip": false
+    },
+    "custom/status": {
+        "exec": "waybar-kraken-wrap polybar-kraken-status",
+        "interval": 2,
+        "format": "{}",
+        "tooltip": false
+    },
+    "custom/stats": {
+        "exec": "waybar-kraken-wrap polybar-kraken-stats",
+        "interval": 2,
+        "format": "{}",
+        "on-click": "kraken-dashboard",
+        "on-click-right": "kraken-web",
+        "tooltip": false
+    },
+    "custom/uplink": {
+        "exec": "waybar-kraken-wrap polybar-net",
+        "interval": 5,
+        "format": "{}",
+        "on-click": "kraken-menu",
+        "tooltip": false
+    },
+    "cpu": {
+        "interval": 3,
+        "format": "<span foreground=\"#7aa2f7\">cpu </span>{usage:2}%",
+        "tooltip": false
+    },
+    "memory": {
+        "interval": 5,
+        "format": "<span foreground=\"#bb9af7\">mem </span>{percentage:2}%",
+        "tooltip": false
+    },
+    "temperature": {
+        "thermal-zone": 0,
+        "interval": 5,
+        "critical-threshold": 68,
+        "format": "<span foreground=\"#7dcfff\">{icon}</span> {temperatureC}°C",
+        "format-critical": "<span foreground=\"#f7768e\">{icon} {temperatureC}°C</span>",
+        "format-icons": ["▁", "▃", "█"],
+        "tooltip": false
+    },
+    "pulseaudio": {
+        "format": "<span foreground=\"#7dcfff\">{icon}</span> {volume}%",
+        "format-muted": "<span foreground=\"#f7768e\">vol mute</span>",
+        "format-icons": {
+            "default": ["▁", "▄", "█"]
+        },
+        "on-click-right": "kraken-volume mute",
+        "on-scroll-up": "kraken-volume up",
+        "on-scroll-down": "kraken-volume down",
+        "tooltip": false
+    },
+    "clock": {
+        "interval": 20,
+        "format": "{:%a %d %b  %H:%M}",
+        "on-click": "kraken-menu",
+        "tooltip": false
+    },
+    "tray": {
+        "icon-size": 18,
+        "spacing": 8
+    }
+}

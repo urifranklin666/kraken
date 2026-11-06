@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
-# Launch (or restart) the KRAKEN polybar on the first connected output.
+# Launch (or restart) the KRAKEN status bar (Waybar under Wayland, Polybar under X11).
 set -euo pipefail
+
+if [[ -n "${WAYLAND_DISPLAY:-}" ]] && [[ -x "$HOME/.config/waybar/launch.sh" ]]; then
+    exec "$HOME/.config/waybar/launch.sh"
+fi
 
 CONFIG="${POLYBAR_CONFIG:-$HOME/.config/polybar/config.ini}"
 LOG_DIR="${XDG_CACHE_HOME:-$HOME/.cache}"
